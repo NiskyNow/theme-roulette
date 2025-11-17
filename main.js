@@ -1,41 +1,36 @@
-// main.js
+// main.js (全文)
 
 const { app, BrowserWindow, ipcMain, Menu } = require('electron');
 const path = require('path');
 const Store = require('electron-store');
+const fs = require('fs'); // ▼▼▼ 修正: ファイルシステムをインポート ▼▼▼
 
-// Storeを初期化 (v7以降は .default が必要)
+// Storeを初期化
 const store = new Store.default({
   defaults: {
+    // 起動時のデフォルトテーマ
+    currentTheme: 'arcade', 
+    
+    // 項目設定
     settings: {
-      // 項目リスト (名前 と "重み" で確率を表現)
       items: [
         { "name": "激辛お菓子", "weight": 10 },
         { "name": "サインチェキ", "weight": 10 },
-        { "name": "歌います", "weight": 10 },
-        { "name": "動画", "weight": 10 },
-        { "name": "踊ります", "weight": 10 }
+        { "name": "歌います", "weight": 10 }
       ],
-      // フェイク動作のON/OFF
       fakeSpin: false 
     }
   }
 });
 
-// メインウィンドウをグローバルで保持
 let mainWindow;
 
-/**
- * メインウィンドウを作成する関数
- */
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 800,
-    height: 1000, 
-
-    transparent: true, // ウィンドウを透明化
+    height: 900, 
+    transparent: true,
     frame: false,
-    
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -43,11 +38,15 @@ function createWindow() {
     },
   });
 
-  // ▼▼▼ 読み込むHTMLを改造版に指定 ▼▼▼
-  mainWindow.loadFile('cosmicroulette.html');
-  // ▲▲▲
+  // ▼▼▼ 修正 ▼▼▼
+  // 起動時にストアから「現在のテーマ」を読み込む
+  const themeName = store.get('currentTheme');
+  const themeHtmlPath = `roulette_themes/${themeName}.html`;
 
-  // (開発用) デベロッパーツールを開く
+  console.log(`Loading theme: ${themeHtmlPath}`);
+  mainWindow.loadFile(themeHtmlPath); // 決定したテーマのHTMLを読み込む
+  // ▲▲▲ 修正 ▲▲▲
+  
   // mainWindow.webContents.openDevTools();
 
   // --- IPCハンドラ ---
@@ -60,6 +59,13 @@ function createWindow() {
   // (書き込み)
   ipcMain.on('set-store-value', (event, key, value) => {
     store.set(key, value);
+    
+    // ▼▼▼ 修正 ▼▼▼
+    // もしテーマが変更されたら、アプリをリロードして反映
+    if (key === 'currentTheme') {
+        mainWindow.reload();
+    }
+    // ▲▲▲ 修正 ▲▲▲
   });
   
   // (更新通知)
@@ -76,27 +82,38 @@ function createWindow() {
     }
     createSettingsWindow();
   });
+  
+  // ▼▼▼ 修正 ▼▼▼
+  // (f)
+  ipcMain.handle('get-theme-profile', (event, themeName) => {
+      // "arcade" -> "theme_profiles/arcade.json"
+      const filePath = path.join(__dirname, 'theme_profiles', `${themeName}.json`);
+      console.log(`Reading profile: ${filePath}`);
+      try {
+          const data = fs.readFileSync(filePath, 'utf8');
+          return JSON.parse(data);
+      } catch (error) {
+          console.error(`Failed to read profile: ${error.message}`);
+          return null; // 読み込み失敗
+      }
+  });
+  // ▲▲▲ 修正 ▲▲▲
 }
 
-/**
- * 設定ウィンドウを作成する関数
- */
 function createSettingsWindow() {
+  // ( ... createSettingsWindow のコードは変更なし ... )
   const settingsWindow = new BrowserWindow({
     width: 400,
     height: 500,
     title: '設定',
-    // modal: false (非モーダル)
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'), 
       contextIsolation: true,
       nodeIntegration: false,
     },
   });
-
   settingsWindow.loadFile('settings.html');
 }
-
 
 // --- アプリのライフサイクル ---
 app.whenReady().then(() => {

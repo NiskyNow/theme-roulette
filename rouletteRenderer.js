@@ -1,4 +1,4 @@
-// rouletteRenderer.js
+// rouletteRenderer.js (最終版)
 
 // メイン処理を非同期関数で囲む
 async function initializeApp() {
@@ -11,14 +11,16 @@ async function initializeApp() {
   console.log('✅ 成功: preload.js との連携に成功しました！');
 
   // --- グローバル変数とHTML要素の取得 ---
-  let items = [];
-  let colors = [];
-  let probabilities = [];
+  let items = []; // 項目名
+  let colors = []; // 最終的な色の配列
+  let probabilities = []; // 重み
   let fakeSpin = false;
-
+  
+  let currentThemeProfile = {}; // 読み込んだJSONプロファイル
   let isSpinning = false;
   let currentRotation = 0;
 
+  // --- 共通IDの要素を取得 ---
   const rouletteSVG = document.getElementById('roulette-svg-target'); 
   const spinBtn = document.getElementById('spinBtn');
   const resultDiv = document.getElementById('result');
@@ -29,91 +31,138 @@ async function initializeApp() {
   }
 
   /**
-   * 0. (仮) テーマの固定色を取得する関数
+   * (A) ストアから設定を読み込み、テーマプロファイルを読み込む
    */
-  function getThemeColors(themeName) {
-    // 今は 'cosmic' テーマの固定色を返す
-    console.log("Applying 'cosmic' theme colors.");
-    return ['#1e3a8a', '#831843', '#065f46', '#92400e', '#581c87'];
-  }
-
-  /**
-   * (A) ストアから設定を読み込み、変数を更新する関数
-   */
-  async function loadSettings() {
+  async function loadSettingsAndTheme() {
     console.log('preload.jsのAPI経由で設定を取得します...');
-    const settings = await window.electronAPI.getStoreValue('settings'); 
     
-    if (!settings || !settings.items) { 
+    // 1. electron-storeから設定を取得
+    const settings = await window.electronAPI.getStoreValue('settings'); 
+    const themeName = await window.electronAPI.getStoreValue('currentTheme'); // 'arcade' など
+
+    if (!settings || !settings.items || !themeName) { 
       resultDiv.textContent = 'エラー: 設定が読み込めません';
       return false;
     }
 
+    // 2. 項目と確率をセット
     items = settings.items.map(item => item.name);
     probabilities = settings.items.map(item => item.weight);
     fakeSpin = settings.fakeSpin;
-    colors = getThemeColors('cosmic'); // ◀◀◀ テーマ色をセット
+    
+    // 3. テーマのJSONプロファイルを読み込む (preload.js経由)
+    console.log(`テーマ "${themeName}" のプロファイルを読み込みます...`);
+    currentThemeProfile = await window.electronAPI.getThemeProfile(themeName);
+    
+    if (!currentThemeProfile) {
+      resultDiv.textContent = `エラー: ${themeName}.json が読み込めません`;
+      return false;
+    }
+
+    // 4. 色の配列を生成する
+    colors = generateColors(items.length, currentThemeProfile.colorProfile);
     
     return true;
+  }
+  
+  /**
+   * (B) 色のプロファイルに基づいて色の配列を生成する
+   */
+  function generateColors(count, profile) {
+    const generated = [];
+    if (profile.type === 'fixed-list' || profile.type === 'alternating') {
+      // 固定リスト、または交互のリスト
+      for (let i = 0; i < count; i++) {
+        generated.push(profile.colors[i % profile.colors.length]);
+      }
+    } else if (profile.type === 'gradient') {
+      // (将来的には、ここでグラデーションの中間色を自動生成するロジックを実装)
+      // (現在は固定リストと同じ動作)
+      for (let i = 0; i < count; i++) {
+        generated.push(profile.colors[i % profile.colors.length]);
+      }
+    }
+    return generated;
   }
 
 
   /**
-   * 3. ルーレットを描画する関数
+   * (C) ルーレットを描画する関数 (JSONプロファイルを使用)
    */
   function drawRoulette() {
-      // <svg> タグの中身を空にする
-      rouletteSVG.innerHTML = ''; 
+      // 0. プロファイルからデザイン情報を取得
+      const profile = currentThemeProfile;
+      const segmentCss = profile.segmentCss;
+      const textCss = segmentCss.text;
+      
+      // 1. SVG要素と設定
+      rouletteSVG.innerHTML = ''; // 中身をクリア
+      rouletteSVG.setAttribute('viewBox', profile.svgViewBox); // "0 0 580 580" など
+      const [,, vbWidth, vbHeight] = profile.svgViewBox.split(' ').map(Number);
+      const centerX = vbWidth / 2;
+      const centerY = vbHeight / 2;
+      const radius = Math.min(centerX, centerY) - 10; // (マージン 10px)
 
       if (items.length === 0) {
-        rouletteSVG.innerHTML = '<text x="300" y="300" fill="white" font-size="24" text-anchor="middle">項目がありません。設定してください。</text>';
+        rouletteSVG.innerHTML = `<text x="${centerX}" y="${centerY}" fill="${textCss.fill}" font-size="${textCss.font-size}" text-anchor="middle">項目がありません。設定してください。</text>`;
         return;
       }
 
       console.log('描画開始:', items, colors);
 
-      const centerX = 300;
-      const centerY = 300;
-      const radius = 290;
       const anglePerSegment = 360 / items.length;
       const svgNS = 'http://www.w3.org/2000/svg';
 
       function createSegmentPath(index) {
-          const startAngle = (index * anglePerSegment - 90) * Math.PI / 180;
-          const endAngle = ((index + 1) * anglePerSegment - 90) * Math.PI / 180;
-          const x1 = centerX + radius * Math.cos(startAngle);
-          const y1 = centerY + radius * Math.sin(startAngle);
-          const x2 = centerX + radius * Math.cos(endAngle);
-          const y2 = centerY + radius * Math.sin(endAngle);
-          const largeArc = anglePerSegment > 180 ? 1 : 0;
-          return `M ${centerX} ${centerY} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} Z`;
+          const startRad = (anglePerSegment * index - 90) * Math.PI / 180;
+          const endRad = (anglePerSegment * (index + 1) - 90) * Math.PI / 180;
+          
+          const x1 = centerX + radius * Math.cos(startRad);
+          const y1 = centerY + radius * Math.sin(startRad);
+          const x2 = centerX + radius * Math.cos(endRad);
+          const y2 = centerY + radius * Math.sin(endRad);
+          
+          return `M ${centerX} ${centerY} L ${x1} ${y1} A ${radius} ${radius} 0 0 1 ${x2} ${y2} Z`;
       }
 
       for (let i = 0; i < items.length; i++) {
-          // 扇形のパス
+          // --- 1. 扇形のパス ---
           const path = document.createElementNS(svgNS, 'path');
           path.setAttribute('d', createSegmentPath(i));
-          path.setAttribute('fill', colors[i % colors.length]); 
-          path.setAttribute('class', 'segment-path');
+          path.setAttribute('fill', colors[i]);
+          
+          // JSONプロファイルからCSSを適用
+          Object.keys(segmentCss.path).forEach(key => {
+            path.style[key] = segmentCss.path[key];
+          });
+          
           rouletteSVG.appendChild(path);
 
-          // ▼▼▼ テキスト描画 (復活) ▼▼▼
-          const angle = (i * anglePerSegment + anglePerSegment / 2 - 90) * Math.PI / 180;
+          // --- 2. テキスト ---
+          const textAngleRad = (anglePerSegment * i + anglePerSegment / 2 - 90) * Math.PI / 180;
           const textRadius = radius * 0.65;
-          const textX = centerX + textRadius * Math.cos(angle);
-          const textY = centerY + textRadius * Math.sin(angle);
+          const textX = centerX + textRadius * Math.cos(textAngleRad);
+          const textY = centerY + textRadius * Math.sin(textAngleRad);
           
           const text = document.createElementNS(svgNS, 'text');
           text.setAttribute('x', textX);
           text.setAttribute('y', textY);
-          text.setAttribute('class', 'segment-text'); // CSSクラスを適用
           
+          // JSONプロファイルからCSSを適用
+          Object.keys(textCss).forEach(key => {
+            text.style[key] = textCss[key];
+          });
+
+          // 複数行の処理 (JSONプロファイルからオフセットを読み込む)
           const lines = (items[i] || '').split('\n');
+          const verticalOffset = profile.textVerticalOffset || -0.5;
+          const lineHeight = profile.textLineHeight || 30;
+
           if (lines.length > 1) {
               lines.forEach((line, lineIndex) => {
                   const tspan = document.createElementNS(svgNS, 'tspan');
                   tspan.setAttribute('x', textX);
-                  tspan.setAttribute('dy', lineIndex === 0 ? `-${(lines.length-1)*0.5}em` : '1.2em');
+                  tspan.setAttribute('y', textY + (lineIndex + verticalOffset) * lineHeight);
                   tspan.textContent = line;
                   text.appendChild(tspan);
               });
@@ -122,14 +171,11 @@ async function initializeApp() {
           }
           
           rouletteSVG.appendChild(text); 
-          // ▲▲▲ テキスト描画ここまで ▲▲▲
       } 
-
-      console.log('✅ 描画完了: SVG要素に中身を挿入しました。');
   }
 
   /**
-   * 4. 回転ロジック (変更なし)
+   * (D) 回転ロジック (変更なし)
    */
   function spin() {
       if (isSpinning) return;
@@ -139,7 +185,7 @@ async function initializeApp() {
       }
       isSpinning = true;
       spinBtn.disabled = true;
-      resultDiv.textContent = '回転中...';
+      resultDiv.textContent = '...'; // 結果表示をシンプルに
 
       const winningIndex = getWeightedRandomIndex();
       if (winningIndex === -1) {
@@ -156,6 +202,7 @@ async function initializeApp() {
       const finalRotation = (spins * 360) + normalizedTargetAngle + currentRotation;
 
       if (fakeSpin) {
+          // (フェイクスピンのロジック ... 変更なし)
           const fakeIndexOffset = Math.random() < 0.5 ? 1 : -1;
           const fakeIndex = (winningIndex + fakeIndexOffset + items.length) % items.length;
           const fakeTargetAngle = (segmentAngle * fakeIndex) + (segmentAngle / 2);
@@ -170,14 +217,14 @@ async function initializeApp() {
       }
       currentRotation = finalRotation;
       setTimeout(() => {
-          resultDiv.textContent = `結果: ${winningItemName}`;
+          resultDiv.textContent = winningItemName; // 結果表示をシンプルに
           isSpinning = false;
           spinBtn.disabled = false;
       }, 5500); 
   }
 
   /**
-   * ヘルパー関数: forceRotate (変更なし)
+   * (E) ヘルパー関数: forceRotate (変更なし)
    */
   function forceRotate(rotationDegrees, durationSeconds, easing) {
       if (!rouletteSVG) return;
@@ -189,7 +236,7 @@ async function initializeApp() {
   }
 
   /**
-   * ヘルパー関数: getWeightedRandomIndex (変更なし)
+   * (F) ヘルパー関数: getWeightedRandomIndex (変更なし)
    */
   function getWeightedRandomIndex() {
       const totalWeight = probabilities.reduce((sum, weight) => sum + weight, 0);
@@ -205,27 +252,25 @@ async function initializeApp() {
   }
 
   // --- 5. イベントリスナーの設定 ---
-  // (左クリック)
   spinBtn.addEventListener('click', spin);
 
-  // (SPINボタン右クリックで設定を開く)
   spinBtn.addEventListener('contextmenu', (event) => {
     event.preventDefault();
-    console.log('SPINボタンが右クリックされました。設定を開きます。');
     window.electronAPI.openSettings();
   });
 
-  // (更新通知)
   window.electronAPI.onSettingsUpdated(async () => {
     console.log('IPC通知 (on-settings-updated) を受信しました！');
-    resultDiv.textContent = '設定を再読み込みしています...';
-    await loadSettings();
-    drawRoulette();
-    resultDiv.textContent = '設定が更新されました！';
+    resultDiv.textContent = '...';
+    
+    await loadSettingsAndTheme(); // 設定とテーマを再読み込み
+    drawRoulette(); // マスを再描画
+    
+    resultDiv.textContent = '...'; // (待機状態に戻す)
   });
 
   // --- 6. 初期化の実行 ---
-  if (await loadSettings()) {
+  if (await loadSettingsAndTheme()) {
     drawRoulette();
   }
 }
