@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>配信用ルーレット - エレガント (SVG版)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Georgia', serif;
+        }
+
+        .container {
+            position: relative;
+            width: 600px;
+            height: 750px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .roulette-wrapper {
+            position: relative;
+            width: 550px;
+            height: 550px;
+            background: linear-gradient(135deg, #F5E6D3, #E8D5C4);
+            border-radius: 50%;
+            padding: 25px;
+            box-shadow: 
+                0 30px 80px rgba(139, 115, 85, 0.3),
+                0 0 0 1px rgba(139, 115, 85, 0.2),
+                inset 0 0 50px rgba(255, 255, 255, 0.3);
+            position: relative;
+        }
+
+        .gold-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 510px;
+            height: 510px;
+            border-radius: 50%;
+            border: 2px solid #D4AF37;
+            opacity: 0.6;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .roulette {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transition: transform 5.5s cubic-bezier(0.17, 0.67, 0.05, 1);
+            border-radius: 50%;
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .center-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 150px;
+            height: 150px;
+            background: 
+                radial-gradient(circle at 35% 35%, #FAF0E6, #E8D5C4);
+            border-radius: 50%;
+            border: 3px solid #B8956A;
+            box-shadow: 
+                0 10px 35px rgba(139, 115, 85, 0.3),
+                inset 0 3px 15px rgba(255, 255, 255, 0.5),
+                inset 0 -3px 10px rgba(139, 115, 85, 0.1);
+            z-index: 15;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .center-ornament {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .center-ornament::before,
+        .center-ornament::after {
+            content: '';
+            position: absolute;
+            background: #B8956A;
+        }
+
+        .center-ornament::before {
+            width: 40px;
+            height: 2px;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+        }
+
+        .center-ornament::after {
+            width: 2px;
+            height: 40px;
+            left: 50%;
+            top: 0;
+            transform: translateX(-50%);
+        }
+
+        .center-diamond {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #D4AF37;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(45deg);
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+
+        .center-text {
+            font-weight: 600;
+            font-size: 20px;
+            color: #8B7355;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+
+        .pointer {
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+        }
+
+        .pointer-stem {
+            width: 4px;
+            height: 70px;
+            background: linear-gradient(180deg, #B8956A, #8B7355);
+            margin: 0 auto;
+            border-radius: 2px;
+            box-shadow: 
+                2px 0 5px rgba(139, 115, 85, 0.3),
+                -2px 0 5px rgba(139, 115, 85, 0.3);
+        }
+
+        .pointer-top {
+            width: 16px;
+            height: 16px;
+            background: radial-gradient(circle at 30% 30%, #D4AF37, #B8956A);
+            border-radius: 50%;
+            margin: 0 auto 5px;
+            box-shadow: 
+                0 3px 8px rgba(139, 115, 85, 0.4),
+                inset 0 1px 3px rgba(255, 255, 255, 0.5);
+            border: 1px solid #8B7355;
+        }
+
+        .pointer-arrow {
+            position: relative;
+            top: -2px;
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 12px solid #8B7355;
+            margin: 0 auto;
+            filter: drop-shadow(0 3px 6px rgba(139, 115, 85, 0.4));
+        }
+
+        .spin-button {
+            margin-top: 65px;
+            padding: 20px 65px;
+            font-size: 22px;
+            font-weight: 600;
+            color: #5A4A3A;
+            background: linear-gradient(135deg, #FAF0E6, #E8D5C4);
+            border: 2px solid #B8956A;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 
+                0 10px 30px rgba(139, 115, 85, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+            transition: all 0.3s;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            font-family: 'Georgia', serif;
+            position: relative;
+        }
+
+        .spin-button::before {
+            content: '◆';
+            position: absolute;
+            left: 25px;
+            color: #D4AF37;
+            font-size: 16px;
+        }
+
+        .spin-button::after {
+            content: '◆';
+            position: absolute;
+            right: 25px;
+            color: #D4AF37;
+            font-size: 16px;
+        }
+
+        .spin-button:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 
+                0 15px 40px rgba(139, 115, 85, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+            background: linear-gradient(135deg, #FFFFFF, #FAF0E6);
+        }
+
+        .spin-button:active:not(:disabled) {
+            transform: translateY(0);
+            box-shadow: 
+                0 5px 15px rgba(139, 115, 85, 0.2),
+                inset 0 1px 3px rgba(139, 115, 85, 0.1);
+        }
+
+        .spin-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .roulette-wrapper.spinning {
+            animation: elegant-glow 1s infinite;
+        }
+
+        @keyframes elegant-glow {
+            0%, 100% {
+                box-shadow: 
+                    0 30px 80px rgba(139, 115, 85, 0.3),
+                    0 0 0 1px rgba(139, 115, 85, 0.2),
+                    inset 0 0 50px rgba(255, 255, 255, 0.3);
+            }
+            50% {
+                box-shadow: 
+                    0 30px 80px rgba(139, 115, 85, 0.5),
+                    0 0 0 1px rgba(212, 175, 55, 0.4),
+                    inset 0 0 50px rgba(255, 255, 255, 0.5),
+                    0 0 40px rgba(212, 175, 55, 0.2);
+            }
+        }
+
+        .decorative-line {
+            position: absolute;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #D4AF37, transparent);
+            width: 200px;
+            opacity: 0.4;
+        }
+
+        .line-top {
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .line-bottom {
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="decorative-line line-top"></div>
+        <div class="roulette-wrapper" id="rouletteWrapper">
+            <div class="gold-ring"></div>
+            
+            <div class="pointer">
+                <div class="pointer-top"></div>
+                <div class="pointer-stem"></div>
+                <div class="pointer-arrow"></div>
+            </div>
+            
+            <div class="roulette" id="roulette">
+                <svg id="rouletteSvg" viewBox="0 0 500 500">
+                    <defs id="gradientDefs"></defs>
+                    <g id="segmentContainer"></g>
+                </svg>
+                <div class="center-circle">
+                    <div class="center-ornament">
+                        <div class="center-diamond"></div>
+                    </div>
+                    <div class="center-text">Spin</div>
+                </div>
+            </div>
+        </div>
+        <div class="decorative-line line-bottom"></div>
+        <button class="spin-button" id="spinButton">Start</button>
+    </div>
+
+    <script>
+        const svg = document.getElementById('rouletteSvg');
+        const defs = document.getElementById('gradientDefs');
+        const gSegments = document.getElementById('segmentContainer');
+        const roulette = document.getElementById('roulette');
+        const spinButton = document.getElementById('spinButton');
+        const rouletteWrapper = document.getElementById('rouletteWrapper');
+
+        const segments = [
+            { text: '項目1', color: '#D4B5A0' },
+            { text: '項目2', color: '#C9A88E' },
+            { text: '項目3', color: '#BFA38C' },
+            { text: '項目4', color: '#B39B8A' },
+            { text: '項目5', color: '#A89485' },
+            { text: '項目6', color: '#9E8B7E' },
+            { text: '項目7', color: '#968579' },
+            { text: '項目8', color: '#8B7B70' }
+        ];
+
+        function drawRoulette() {
+            const svgNS = 'http://www.w3.org/2000/svg';
+            const centerX = 250;
+            const centerY = 250;
+            const radius = 250;
+            const anglePerSegment = (2 * Math.PI) / segments.length;
+
+            const lighten = (color, amount) => {
+                const num = parseInt(color.replace("#", ""), 16);
+                const r = Math.min(255, (num >> 16) + amount);
+                const g = Math.min(255, ((num >> 8) & 0x00FF) + amount);
+                const b = Math.min(255, (num & 0x0000FF) + amount);
+                return "#" + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
+            };
+
+            segments.forEach((segment, i) => {
+                const startAngle = i * anglePerSegment - Math.PI / 2;
+                const endAngle = startAngle + anglePerSegment;
+                const textAngle = startAngle + anglePerSegment / 2;
+                const textAngleDeg = (textAngle * 180 / Math.PI);
+
+                // --- 1. グラデーション定義 ---
+                const gradId = `grad-${i}`;
+                const gradient = document.createElementNS(svgNS, 'radialGradient');
+                gradient.setAttribute('id', gradId);
+                gradient.setAttribute('cx', '50%');
+                gradient.setAttribute('cy', '50%');
+                gradient.setAttribute('r', '50%');
+
+                const stop1 = document.createElementNS(svgNS, 'stop');
+                stop1.setAttribute('offset', '40%');
+                stop1.setAttribute('stop-color', lighten(segment.color, 30));
+                gradient.appendChild(stop1);
+
+                const stop2 = document.createElementNS(svgNS, 'stop');
+                stop2.setAttribute('offset', '100%');
+                stop2.setAttribute('stop-color', segment.color);
+                gradient.appendChild(stop2);
+                
+                defs.appendChild(gradient);
+
+                // --- 2. 扇形パス ---
+                const x1 = centerX + Math.cos(startAngle) * radius;
+                const y1 = centerY + Math.sin(startAngle) * radius;
+                const x2 = centerX + Math.cos(endAngle) * radius;
+                const y2 = centerY + Math.sin(endAngle) * radius;
+                const largeArcFlag = anglePerSegment > Math.PI ? 1 : 0;
+                
+                const pathData = `M ${centerX} ${centerY} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2} Z`;
+                
+                const path = document.createElementNS(svgNS, 'path');
+                path.setAttribute('d', pathData);
+                path.setAttribute('fill', `url(#${gradId})`);
+                path.setAttribute('stroke', 'rgba(255, 250, 240, 0.5)');
+                path.setAttribute('stroke-width', '2');
+                gSegments.appendChild(path);
+
+                // --- 3. 金の装飾線 (円弧パス) ---
+                const goldRadius = radius * 0.85;
+                const gx1 = centerX + Math.cos(startAngle) * goldRadius;
+                const gy1 = centerY + Math.sin(startAngle) * goldRadius;
+                const gx2 = centerX + Math.cos(endAngle) * goldRadius;
+                const gy2 = centerY + Math.sin(endAngle) * goldRadius;
+                
+                const goldPathData = `M ${gx1} ${gy1} A ${goldRadius} ${goldRadius} 0 ${largeArcFlag} 1 ${gx2} ${gy2}`;
+
+                const goldPath = document.createElementNS(svgNS, 'path');
+                goldPath.setAttribute('d', goldPathData);
+                goldPath.setAttribute('fill', 'none');
+gSegments.appendChild(goldPath);
+
+                // --- 4. テキスト (影と本体) ---
+                const gText = document.createElementNS(svgNS, 'g');
+                gText.setAttribute('transform', `translate(${centerX} ${centerY}) rotate(${textAngleDeg})`);
+
+                const textRadius = radius * 0.62;
+
+                // 影
+                const textShadow = document.createElementNS(svgNS, 'text');
+                textShadow.setAttribute('x', textRadius);
+                textShadow.setAttribute('y', 9);
+                textShadow.setAttribute('fill', 'rgba(90, 74, 58, 0.2)');
+                textShadow.setAttribute('font', '600 26px Georgia');
+                textShadow.setAttribute('text-anchor', 'middle');
+                textShadow.textContent = segment.text;
+                gText.appendChild(textShadow);
+
+                // 本体
+                const text = document.createElementNS(svgNS, 'text');
+                text.setAttribute('x', textRadius);
+                text.setAttribute('y', 8);
+                text.setAttribute('fill', '#5A4A3A');
+                text.setAttribute('font', '600 26px Georgia');
+                // ★★★ 前回のタイプミスを修正しました ★★★
+                text.setAttribute('text-anchor', 'middle'); 
+                text.textContent = segment.text;
+                gText.appendChild(text);
+
+                gSegments.appendChild(gText);
+            });
+        }
+
+        drawRoulette();
+
+        let currentRotation = 0;
+        let isSpinning = false;
+
+        spinButton.addEventListener('click', () => {
+            if (isSpinning) return;
+            
+            isSpinning = true;
+            spinButton.disabled = true;
+            rouletteWrapper.classList.add('spinning');
+
+            const spins = 5 + Math.random() * 4;
+            const extraDegrees = Math.random() * 360;
+            const totalRotation = currentRotation + (spins * 360) + extraDegrees;
+
+            roulette.style.transform = `rotate(${totalRotation}deg)`;
+            currentRotation = totalRotation % 360;
+
+            setTimeout(() => {
+                isSpinning = false;
+                spinButton.disabled = false;
+                rouletteWrapper.classList.remove('spinning');
+            }, 5500);
+        });
+    </script>
+</body>
+</html>

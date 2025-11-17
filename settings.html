@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>設定</title>
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self'">
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 10px 20px;
+        }
+        .item-list {
+            margin-bottom: 20px;
+        }
+        .item-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+        .item-row input[type="text"] {
+            flex-grow: 1;
+        }
+        .item-row input[type="number"] {
+            width: 70px;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        #save-status {
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <h2>設定</h2>
+
+    <h3>ルーレット項目</h3>
+    <div id="item-list-container" class="item-list">
+        </div>
+    <div class="controls">
+        <button id="add-item-btn">項目を追加</button>
+    </div>
+
+    <h3>その他</h3>
+    <div>
+        <input type="checkbox" id="fake-spin-check">
+        <label for="fake-spin-check">フェイク動作を有効にする</label>
+    </div>
+
+    <hr>
+
+    <button id="save-btn">保存</button>
+    <span id="save-status"></span>
+
+    <script src="./settingsRenderer.js"></script>
+</body>
+</html>

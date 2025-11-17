@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>ルーレット</title>
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self'">
+    
+    <link rel="stylesheet" id="theme-css" href="./themes/cosmic.css">
+    </head>
+<body>
+
+    <div class="container">
+        
+        <div class="title" id="app-title">Stellar Fortune</div>
+
+        <div class="roulette-wrapper">
+            <div class="pointer"></div>
+
+            <div class="roulette" id="roulette-body">
+                
+                <div id="roulette-svg-target"></div>
+                </div>
+        </div>
+
+        <div id="controls">
+            <button class="button" id="spinBtn">Spin</button>
+            <button class="button" id="settingsBtn">Setting</button> 
+        </div>
+        
+        <div class="result" id="result"></div>
+
+    </div>
+    
+    <script src="./rouletteRenderer.js"></script>
+</body>
+</html>

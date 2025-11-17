@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スチームパンクルーレット</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: transparent;
+            font-family: 'Times New Roman', serif;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+            z-index: 1;
+        }
+
+        .roulette-wrapper {
+            position: relative;
+            width: 620px;
+            height: 620px;
+        }
+
+        .brass-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            border: 8px solid #b8860b;
+            box-shadow: 
+                0 0 0 3px #8b7355,
+                0 0 30px rgba(184, 134, 11, 0.4),
+                inset 0 5px 15px rgba(212, 175, 55, 0.3),
+                inset 0 -5px 15px rgba(61, 40, 23, 0.5);
+        }
+
+        .ring-outer { width: 660px; height: 660px; }
+        .ring-middle { width: 640px; height: 640px; border-width: 5px; }
+        .ring-inner { width: 625px; height: 625px; border-width: 3px; }
+
+        /* .gear (小さな回転する歯車) 関連のCSSを削除 */
+        /* @keyframes gear-rotate を削除 */
+
+        .roulette-base {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 620px;
+            height: 620px;
+            border-radius: 50%;
+            background: 
+                radial-gradient(circle at 30% 30%, #4a3c2e 0%, #2c1810 100%);
+            box-shadow: 
+                inset 0 0 80px rgba(0, 0, 0, 0.9),
+                0 10px 40px rgba(0, 0, 0, 0.7);
+        }
+
+        .roulette {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            background: #1a0f0a;
+            border: 3px solid #8b7355;
+            box-shadow: 
+                inset 0 0 60px rgba(0, 0, 0, 0.9);
+            transition: transform 5s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+            overflow: hidden;
+        }
+
+        .roulette svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .segment-path {
+            stroke: #8b7355;
+            stroke-width: 3;
+        }
+
+        .segment-text {
+            font-size: 24px;
+            font-weight: bold;
+            text-anchor: middle;
+            dominant-baseline: middle;
+            pointer-events: none;
+            fill: #d4af37;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
+            font-family: 'Times New Roman', serif;
+        }
+
+        .center-mechanism {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 150px;
+            height: 150px;
+            z-index: 10;
+        }
+
+        .mech-outer {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: 
+                conic-gradient(
+                    from 0deg,
+                    #8b7355 0deg 10deg,
+                    #6b5644 10deg 20deg,
+                    #8b7355 20deg 30deg,
+                    #6b5644 30deg 40deg,
+                    #8b7355 40deg 50deg,
+                    #6b5644 50deg 60deg,
+                    #8b7355 60deg 70deg,
+                    #6b5644 70deg 80deg,
+                    #8b7355 80deg 90deg,
+                    #6b5644 90deg 100deg,
+                    #8b7355 100deg 110deg,
+                    #6b5644 110deg 120deg,
+                    #8b7355 120deg 130deg,
+                    #6b5644 130deg 140deg,
+                    #8b7355 140deg 150deg,
+                    #6b5644 150deg 160deg,
+                    #8b7355 160deg 170deg,
+                    #6b5644 170deg 180deg,
+                    #8b7355 180deg 190deg,
+                    #6b5644 190deg 200deg,
+                    #8b7355 200deg 210deg,
+                    #6b5644 210deg 220deg,
+                    #8b7355 220deg 230deg,
+                    #6b5644 230deg 240deg,
+                    #8b7355 240deg 250deg,
+                    #6b5644 250deg 260deg,
+                    #8b7355 260deg 270deg,
+                    #6b5644 270deg 280deg,
+                    #8b7355 280deg 290deg,
+                    #6b5644 290deg 300deg,
+                    #8b7355 300deg 310deg,
+                    #6b5644 310deg 320deg,
+                    #8b7355 320deg 330deg,
+                    #6b5644 330deg 340deg,
+                    #8b7355 340deg 350deg,
+                    #6b5644 350deg 360deg
+                );
+            border-radius: 50%;
+            box-shadow: 
+                0 0 30px rgba(139, 115, 85, 0.5),
+                inset 0 0 20px rgba(0, 0, 0, 0.5);
+            /* 回転アニメーションを削除 */
+            /* animation: gear-rotate 12s linear infinite; */
+        }
+
+        .mech-middle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 70%;
+            height: 70%;
+            border-radius: 50%;
+            background: 
+                radial-gradient(circle, #b8860b 0%, #8b7355 100%);
+            border: 4px solid #4a3c2e;
+            box-shadow: 
+                0 0 20px rgba(184, 134, 11, 0.4),
+                inset 0 5px 10px rgba(212, 175, 55, 0.3),
+                inset 0 -5px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .mech-inner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50%;
+            height: 50%;
+            border-radius: 50%;
+            background: 
+                radial-gradient(circle at 35% 35%, #d4af37, #8b7355);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 42px;
+            box-shadow: 
+                inset 0 2px 5px rgba(0, 0, 0, 0.7),
+                0 2px 5px rgba(212, 175, 55, 0.3);
+        }
+
+        .bolt {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #4a3c2e;
+            border-radius: 50%;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        .bolt-1 { top: 20%; left: 50%; transform: translate(-50%, -50%); }
+        .bolt-2 { top: 50%; right: 20%; transform: translate(50%, -50%); }
+        .bolt-3 { bottom: 20%; left: 50%; transform: translate(-50%, 50%); }
+        .bolt-4 { top: 50%; left: 20%; transform: translate(-50%, -50%); }
+
+        .pointer {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 60px solid #d4af37;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6));
+            z-index: 20;
+            position: relative;
+        }
+
+        .pointer::before {
+            content: '';
+            position: absolute;
+            top: -60px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle at 30% 30%, #d4af37, #8b7355);
+            border-radius: 50%;
+            box-shadow: 
+                0 0 15px rgba(212, 175, 55, 0.6),
+                inset 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        /* .lever-base と .lever-handle (レバー関連) のCSSを削除 */
+
+        .button {
+            padding: 18px 60px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #0a0502;
+            background: 
+                linear-gradient(135deg, #d4af37 0%, #b8860b 50%, #8b7355 100%);
+            border: 4px solid #4a3c2e;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 
+                0 6px 0 #3d2817,
+                0 8px 20px rgba(0, 0, 0, 0.5),
+                inset 0 2px 8px rgba(255, 255, 255, 0.2),
+                inset 0 -2px 8px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            font-variant: small-caps;
+            position: relative;
+        }
+
+        .button::before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            right: 4px;
+            bottom: 4px;
+            border: 1px solid rgba(0, 0, 0, 0.3);
+            pointer-events: none;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 8px 0 #3d2817,
+                0 10px 25px rgba(0, 0, 0, 0.6),
+                inset 0 2px 10px rgba(255, 255, 255, 0.3),
+                inset 0 -2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .button:active {
+            transform: translateY(4px);
+            box-shadow: 
+                0 2px 0 #3d2817,
+                0 4px 10px rgba(0, 0, 0, 0.4),
+                inset 0 1px 5px rgba(255, 255, 255, 0.1),
+                inset 0 -1px 5px rgba(0, 0, 0, 0.4);
+        }
+
+        .button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="roulette-wrapper">
+            <div class="brass-ring ring-outer"></div>
+            <div class="brass-ring ring-middle"></div>
+            <div class="brass-ring ring-inner"></div>
+            <div class="roulette-base"></div>
+            <div class="pointer"></div>
+            <div class="roulette" id="roulette">
+                <svg viewBox="0 0 600 600" id="rouletteSvg"></svg>
+                <div class="center-mechanism">
+                    <div class="mech-outer">
+                        <div class="bolt bolt-1"></div>
+                        <div class="bolt bolt-2"></div>
+                        <div class="bolt bolt-3"></div>
+                        <div class="bolt bolt-4"></div>
+                    </div>
+                    <div class="mech-middle"></div>
+                    <div class="mech-inner">⚙</div>
+                </div>
+            </div>
+            </div>
+        <button class="button" id="spinBtn" onclick="spin()">Engage</button>
+        
+    </div>
+
+    <script>
+        const segments = 5;
+        const items = ['激辛お菓子', 'サイン\nチェキ', '歌います', 'メッセージ\n動画', '踊ります'];
+        const colors = ['#3d2817', '#5a3d2b', '#4a3c2e', '#6b5644', '#2c1810'];
+        
+        const roulette = document.getElementById('roulette');
+        const svg = document.getElementById('rouletteSvg');
+        const spinBtn = document.getElementById('spinBtn');
+        
+        const centerX = 300;
+        const centerY = 300;
+        const radius = 290;
+        const anglePerSegment = 360 / segments;
+        
+        function createSegmentPath(index) {
+            const startAngle = (index * anglePerSegment - 90) * Math.PI / 180;
+            const endAngle = ((index + 1) * anglePerSegment - 90) * Math.PI / 180;
+            
+            const x1 = centerX + radius * Math.cos(startAngle);
+            const y1 = centerY + radius * Math.sin(startAngle);
+            const x2 = centerX + radius * Math.cos(endAngle);
+            const y2 = centerY + radius * Math.sin(endAngle);
+            
+            const largeArc = anglePerSegment > 180 ? 1 : 0;
+            
+            return `M ${centerX} ${centerY} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} Z`;
+        }
+        
+        for (let i = 0; i < segments; i++) {
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', createSegmentPath(i));
+            path.setAttribute('fill', colors[i]);
+            path.setAttribute('class', 'segment-path');
+            svg.appendChild(path);
+            
+            const angle = (i * anglePerSegment + anglePerSegment / 2 - 90) * Math.PI / 180;
+            const textRadius = radius * 0.65;
+            const textX = centerX + textRadius * Math.cos(angle);
+            const textY = centerY + textRadius * Math.sin(angle);
+            
+            const lines = items[i].split('\n');
+            
+            if (lines.length > 1) {
+                lines.forEach((line, lineIndex) => {
+                    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text.setAttribute('x', textX);
+                    text.setAttribute('y', textY + (lineIndex - 0.5) * 28);
+                    text.setAttribute('class', 'segment-text');
+                    text.textContent = line;
+                    svg.appendChild(text);
+                });
+            } else {
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', textX);
+                text.setAttribute('y', textY);
+                text.setAttribute('class', 'segment-text');
+                text.textContent = items[i];
+                svg.appendChild(text);
+            }
+        }
+        
+        let isSpinning = false;
+        let currentRotation = 0;
+        
+        function spin() {
+            if (isSpinning) return;
+            
+            isSpinning = true;
+            spinBtn.disabled = true;
+            
+            const spins = 5 + Math.random() * 3;
+            const extraDegrees = Math.random() * 360;
+            const totalRotation = currentRotation + (spins * 360) + extraDegrees;
+            
+            roulette.style.transform = `translate(-50%, -50%) rotate(${totalRotation}deg)`;
+            currentRotation = totalRotation % 360;
+            
+            setTimeout(() => {
+                const segmentAngle = 360 / segments;
+                const normalizedRotation = (360 - (currentRotation % 360)) % 360;
+                const winningIndex = Math.floor(normalizedRotation / segmentAngle);
+                
+                console.log("結果:", items[winningIndex].replace('\n', ' ')); 
+
+                isSpinning = false;
+                spinBtn.disabled = false;
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

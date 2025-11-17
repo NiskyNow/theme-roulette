@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>和風ルーレット</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            /* 背景を透過に変更 */
+            background: transparent;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Yu Mincho', 'YuMincho', 'Hiragino Mincho ProN', serif;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* body::before (背景装飾) を削除 */
+
+        /* .sakura と @keyframes fall (桜エフェクト) を削除 */
+
+        .container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 50px;
+            z-index: 1;
+        }
+
+        /* .title (タイトル) 関連のCSSを削除 */
+
+        .roulette-wrapper {
+            position: relative;
+            width: 600px;
+            height: 600px;
+        }
+
+        .outer-frame {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 640px;
+            height: 640px;
+            border-radius: 50%;
+            background: 
+                linear-gradient(45deg, #8b4513 0%, #a0522d 50%, #8b4513 100%);
+            box-shadow: 
+                0 0 0 8px #dcb464,
+                0 0 0 12px #8b4513,
+                0 0 60px rgba(220, 180, 100, 0.3),
+                inset 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .inner-decoration {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 620px;
+            height: 620px;
+            border-radius: 50%;
+            border: 3px solid #dcb464;
+            box-shadow: 
+                inset 0 0 20px rgba(220, 180, 100, 0.3),
+                0 0 20px rgba(220, 180, 100, 0.2);
+        }
+
+        .roulette {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            background: 
+                radial-gradient(circle, #2a1810 0%, #1a0f0a 100%);
+            box-shadow: 
+                inset 0 0 60px rgba(0, 0, 0, 0.9);
+            transition: transform 5s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+            overflow: hidden;
+        }
+
+        .roulette svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .segment-path {
+            stroke: #dcb464;
+            stroke-width: 2;
+            opacity: 0.95;
+        }
+
+        .segment-text {
+            font-size: 24px;
+            font-weight: bold;
+            text-anchor: middle;
+            dominant-baseline: middle;
+            pointer-events: none;
+            fill: #ffffff;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
+        }
+
+        .center-mon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 140px;
+            height: 140px;
+            z-index: 10;
+        }
+
+        .mon-outer {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: 
+                linear-gradient(135deg, #8b4513, #a0522d);
+            box-shadow: 
+                0 0 0 4px #dcb464,
+                0 0 30px rgba(220, 180, 100, 0.5),
+                inset 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .mon-inner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 85%;
+            height: 85%;
+            border-radius: 50%;
+            background: 
+                radial-gradient(circle, #2a1810 0%, #1a0f0a 100%);
+            border: 2px solid #dcb464;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 
+                inset 0 0 20px rgba(0, 0, 0, 0.8);
+        }
+
+        .mon-symbol {
+            font-size: 48px;
+            color: #dcb464;
+            text-shadow: 0 0 10px rgba(220, 180, 100, 0.8);
+            animation: mon-glow 3s ease-in-out infinite;
+        }
+
+        @keyframes mon-glow {
+            0%, 100% {
+                text-shadow: 0 0 10px rgba(220, 180, 100, 0.8);
+            }
+            50% {
+                text-shadow: 0 0 20px rgba(220, 180, 100, 1), 0 0 30px rgba(220, 180, 100, 0.6);
+            }
+        }
+
+        .pointer {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 25px solid transparent;
+            border-right: 25px solid transparent;
+            border-top: 45px solid #c41e3a;
+            filter: drop-shadow(0 4px 8px rgba(196, 30, 58, 0.6));
+            z-index: 20;
+        }
+
+        .pointer::after {
+            content: '';
+            position: absolute;
+            top: -45px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 12px;
+            background: #dcb464;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(220, 180, 100, 0.8);
+        }
+
+        .button {
+            padding: 20px 80px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #ffffff;
+            background: 
+                linear-gradient(135deg, #8b4513 0%, #a0522d 50%, #8b4513 100%);
+            border: 3px solid #dcb464;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 
+                0 6px 0 #5a2d0f,
+                0 8px 20px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(220, 180, 100, 0.3);
+            transition: all 0.2s ease;
+            letter-spacing: 8px;
+            position: relative;
+        }
+
+        .button::before {
+            content: '▶';
+            position: absolute;
+            left: 30px;
+            color: #dcb464;
+        }
+
+        .button::after {
+            content: '◀';
+            position: absolute;
+            right: 30px;
+            color: #dcb464;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 8px 0 #5a2d0f,
+                0 10px 25px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(220, 180, 100, 0.4);
+        }
+
+        .button:active {
+            transform: translateY(4px);
+            box-shadow: 
+                0 2px 0 #5a2d0f,
+                0 4px 10px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(220, 180, 100, 0.2);
+        }
+
+        .button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* .result (結果表示) 関連のCSSを削除 */
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="roulette-wrapper">
+            <div class="outer-frame"></div>
+            <div class="inner-decoration"></div>
+            <div class="pointer"></div>
+            <div class="roulette" id="roulette">
+                <svg viewBox="0 0 600 600" id="rouletteSvg"></svg>
+                <div class="center-mon">
+                    <div class="mon-outer"></div>
+                    <div class="mon-inner">
+                        <div class="mon-symbol">🌸</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button class="button" id="spinBtn" onclick="spin()">回転</button>
+        </div>
+
+    <script>
+        // 桜のエフェクト生成スクリプトを削除
+
+        const segments = 5;
+        const items = ['激辛お菓子', 'サイン\nチェキ', '歌います', 'メッセージ\n動画', '踊ります'];
+        const colors = ['#8b1a1a', '#1a4d8b', '#2d5a2d', '#8b5a1a', '#5a1a5a'];
+        
+        const roulette = document.getElementById('roulette');
+        const svg = document.getElementById('rouletteSvg');
+        // const result = document.getElementById('result'); // 削除
+        const spinBtn = document.getElementById('spinBtn');
+        
+        const centerX = 300;
+        const centerY = 300;
+        const radius = 290;
+        const anglePerSegment = 360 / segments;
+        
+        function createSegmentPath(index) {
+            const startAngle = (index * anglePerSegment - 90) * Math.PI / 180;
+            const endAngle = ((index + 1) * anglePerSegment - 90) * Math.PI / 180;
+            
+            const x1 = centerX + radius * Math.cos(startAngle);
+            const y1 = centerY + radius * Math.sin(startAngle);
+            const x2 = centerX + radius * Math.cos(endAngle);
+            const y2 = centerY + radius * Math.sin(endAngle);
+            
+            const largeArc = anglePerSegment > 180 ? 1 : 0;
+            
+            return `M ${centerX} ${centerY} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} Z`;
+        }
+        
+        for (let i = 0; i < segments; i++) {
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', createSegmentPath(i));
+            path.setAttribute('fill', colors[i]);
+            path.setAttribute('class', 'segment-path');
+            svg.appendChild(path);
+            
+            const angle = (i * anglePerSegment + anglePerSegment / 2 - 90) * Math.PI / 180;
+            const textRadius = radius * 0.65;
+            const textX = centerX + textRadius * Math.cos(angle);
+            const textY = centerY + textRadius * Math.sin(angle);
+            
+            const lines = items[i].split('\n');
+            
+            if (lines.length > 1) {
+                lines.forEach((line, lineIndex) => {
+                    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text.setAttribute('x', textX);
+                    text.setAttribute('y', textY + (lineIndex - 0.5) * 28);
+                    text.setAttribute('class', 'segment-text');
+                    text.textContent = line;
+                    svg.appendChild(text);
+                });
+            } else {
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', textX);
+                text.setAttribute('y', textY);
+                text.setAttribute('class', 'segment-text');
+                text.textContent = items[i];
+                svg.appendChild(text);
+            }
+        }
+        
+        let isSpinning = false;
+        let currentRotation = 0;
+        
+        function spin() {
+            if (isSpinning) return;
+            
+            isSpinning = true;
+            spinBtn.disabled = true;
+            // result.textContent = ''; // 削除
+            
+            const spins = 5 + Math.random() * 3;
+            const extraDegrees = Math.random() * 360;
+            const totalRotation = currentRotation + (spins * 360) + extraDegrees;
+            
+            roulette.style.transform = `translate(-50%, -50%) rotate(${totalRotation}deg)`;
+            currentRotation = totalRotation % 360;
+            
+            setTimeout(() => {
+                const segmentAngle = 360 / segments;
+                const normalizedRotation = (360 - (currentRotation % 360)) % 360;
+                const winningIndex = Math.floor(normalizedRotation / segmentAngle);
+                
+                // result.textContent = items[winningIndex].replace('\n', ''); // 削除
+                
+                // 結果をコンソールに出力（確認用、不要なら削除OK）
+                console.log("結果:", items[winningIndex].replace('\n', ' ')); 
+
+                isSpinning = false;
+                spinBtn.disabled = false;
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
