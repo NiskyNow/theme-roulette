@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>キャンディルーレット</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: transparent;
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .container {
+            -webkit-app-region: drag;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+            z-index: 1;
+        }
+
+        .roulette-wrapper {
+            -webkit-app-region: drag;
+            position: relative;
+            width: 580px;
+            height: 580px;
+            filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.3));
+        }
+
+        .candy-wrapper {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 620px;
+            height: 620px;
+            border-radius: 50%;
+            background: 
+                repeating-conic-gradient(
+                    from 0deg,
+                    #ff6b9d 0deg 45deg,
+                    #ffffff 45deg 90deg
+                );
+            animation: spin-wrapper 20s linear infinite;
+            opacity: 0.3;
+        }
+
+        @keyframes spin-wrapper {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .outer-candy {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            background: 
+                linear-gradient(135deg, #ff6b9d 0%, #ffa500 25%, #00d4ff 50%, #c471f5 75%, #ff6b9d 100%);
+            box-shadow: 
+                0 0 0 10px #ffffff,
+                0 0 0 15px #ff6b9d,
+                0 0 60px rgba(255, 107, 157, 0.6),
+                inset 0 0 40px rgba(255, 255, 255, 0.3);
+        }
+
+        .roulette {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 580px;
+            height: 580px;
+            border-radius: 50%;
+            background: #ffffff;
+            box-shadow: 
+                inset 0 0 40px rgba(0, 0, 0, 0.1);
+            /* transition はJS側 (roulette-svg-target) で制御 */
+            overflow: hidden;
+        }
+
+        .roulette svg {
+            width: 100%;
+            height: 100%;
+            /* ▼▼▼ 修正 ▼▼▼ */
+            transition: transform 5s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+            position: relative;
+            z-index: 5;
+            /* ▲▲▲ 修正 ▲▲▲ */
+        }
+
+        .segment-path {
+            stroke: #ffffff;
+            stroke-width: 5;
+            filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.5));
+        }
+
+        .segment-text {
+            font-size: 26px;
+            font-weight: bold;
+            text-anchor: middle;
+            dominant-baseline: middle;
+            pointer-events: none;
+            fill: #ffffff;
+            filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.4));
+        }
+
+        .center-candy {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 150px;
+            height: 150px;
+            z-index: 10;
+        }
+
+        .candy-swirl {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: 
+                conic-gradient(
+                    from 0deg,
+                    #ff6b9d 0deg,
+                    #ffffff 30deg,
+                    #ffa500 60deg,
+                    #ffffff 90deg,
+                    #00d4ff 120deg,
+                    #ffffff 150deg,
+                    #c471f5 180deg,
+                    #ffffff 210deg,
+                    #ff6b9d 240deg,
+                    #ffffff 270deg,
+                    #ffa500 300deg,
+                    #ffffff 330deg,
+                    #ff6b9d 360deg
+                );
+            box-shadow: 
+                0 0 0 8px #ffffff,
+                0 0 30px rgba(255, 107, 157, 0.5),
+                inset 0 0 30px rgba(255, 255, 255, 0.5);
+            animation: spin-candy 4s linear infinite;
+        }
+
+        @keyframes spin-candy {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .candy-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60%;
+            height: 60%;
+            border-radius: 50%;
+            background: 
+                radial-gradient(circle at 30% 30%, #ffffff, #ff6b9d);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            animation: pulse-candy 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-candy {
+            0%, 100% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+        }
+
+        .pointer {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 80px;
+            background: linear-gradient(180deg, #ff6b9d 0%, #ffa500 100%);
+            clip-path: polygon(50% 100%, 20% 30%, 30% 0%, 70% 0%, 80% 30%);
+            box-shadow: 
+                0 5px 20px rgba(255, 107, 157, 0.6),
+                inset 0 -5px 10px rgba(0, 0, 0, 0.2);
+            z-index: 20;
+            animation: pointer-bounce 0.5s ease-in-out infinite;
+        }
+
+        @keyframes pointer-bounce {
+            0%, 100% {
+                transform: translateX(-50%) translateY(0);
+            }
+            50% {
+                transform: translateX(-50%) translateY(-5px);
+            }
+        }
+
+        .pointer::after {
+            content: '★';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 32px;
+            color: #ffa500;
+            filter: drop-shadow(0 0 10px rgba(255, 165, 0, 0.8));
+            animation: star-twinkle 1s ease-in-out infinite;
+        }
+
+        @keyframes star-twinkle {
+            0%, 100% {
+                transform: translateX(-50%) scale(1) rotate(0deg);
+            }
+            50% {
+                transform: translateX(-50%) scale(1.3) rotate(180deg);
+            }
+        }
+
+        .button {
+            -webkit-app-region: no-drag;
+            padding: 22px 70px;
+            font-size: 32px;
+            font-weight: bold;
+            color: #ffffff;
+            background: linear-gradient(135deg, #ff6b9d 0%, #ffa500 50%, #ff6b9d 100%);
+            background-size: 200% 200%;
+            border: 6px solid #ffffff;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 
+                0 8px 0 #c4508a,
+                0 12px 30px rgba(255, 107, 157, 0.5);
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            animation: button-glow 2s ease-in-out infinite;
+        }
+
+        @keyframes button-glow {
+            0%, 100% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+
+        .button:hover {
+            transform: translateY(-4px);
+            box-shadow: 
+                0 12px 0 #c4508a,
+                0 16px 40px rgba(255, 107, 157, 0.7);
+        }
+
+        .button:active {
+            transform: translateY(6px);
+            box-shadow: 
+                0 2px 0 #c4508a,
+                0 4px 15px rgba(255, 107, 157, 0.4);
+        }
+
+        .button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ▼▼▼ 修正 ▼▼▼ */
+        /* 結果表示欄のスタイルを追加 */
+        .result {
+            -webkit-app-region: no-drag;
+            font-size: 36px;
+            font-weight: bold;
+            color: #ff6b9d; /* テーマカラー */
+            text-shadow: 0 0 20px #ff6b9d;
+            min-height: 50px;
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+        }
+        /* ▲▲▲ 修正 ▲▲▲ */
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="roulette-wrapper">
+            <div class="candy-wrapper"></div>
+            <div class="outer-candy"></div>
+            <div class="pointer"></div>
+            <div class="roulette" id="roulette-body">
+                <svg viewBox="0 0 580 580" id="roulette-svg-target"></svg>
+                <div class="center-candy">
+                    <div class="candy-swirl"></div>
+                    <div class="candy-center">🍬</div>
+                </div>
+            </div>
+        </div>
+        <button class="button" id="spinBtn">SPIN!</button>
+        <div class="result" id="result"></div>
+        </div>
+
+    <script src="../rouletteRenderer.js"></script>
+    </body>
+</html>

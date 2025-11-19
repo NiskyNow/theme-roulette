@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>配信用ルーレット - パステル</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .container {
+            position: relative;
+            width: 600px;
+            height: 750px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            /* ▼▼▼ 修正 ▼▼▼ */
+            gap: 40px; /* .spin-button と .result の隙間を確保 */
+            /* ▲▲▲ 修正 ▲▲▲ */
+        }
+
+        .roulette-wrapper {
+            -webkit-app-region: drag;
+            position: relative;
+            width: 550px;
+            height: 550px;
+            background: linear-gradient(135deg, #FFF5F7, #FFF0F5);
+            border-radius: 50%;
+            padding: 25px;
+            box-shadow: 
+                0 20px 60px rgba(255, 182, 193, 0.4),
+                0 0 0 8px rgba(255, 255, 255, 0.5);
+        }
+
+        .roulette {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            /* transition はJS側 (roulette-svg-target) で制御 */
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+            /* ▼▼▼ 修正 ▼▼▼ */
+            transition: transform 5s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+            position: relative;
+            z-index: 5;
+            border-radius: 50%; /* 念のため */
+            /* ▲▲▲ 修正 ▲▲▲ */
+        }
+
+        .center-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 130px;
+            height: 130px;
+            background: linear-gradient(135deg, #FFFFFF, #FFF5F7);
+            border-radius: 50%;
+            border: 6px solid #FFB6C1;
+            box-shadow: 
+                0 8px 25px rgba(255, 182, 193, 0.3),
+                inset 0 2px 10px rgba(255, 182, 193, 0.1);
+            z-index: 15;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 26px;
+            color: #FF69B4;
+            letter-spacing: 2px;
+        }
+
+        .pointer {
+            position: absolute;
+            top: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 28px solid transparent;
+            border-right: 28px solid transparent;
+            border-top: 85px solid #FF69B4;
+            filter: drop-shadow(0 5px 15px rgba(255, 105, 180, 0.4));
+            z-index: 20;
+        }
+
+        .pointer::after {
+            content: '';
+            position: absolute;
+            top: -95px;
+            left: -16px;
+            width: 32px;
+            height: 32px;
+            background: #FF69B4;
+            border-radius: 50%;
+            border: 4px solid #FFFFFF;
+            box-shadow: 0 4px 12px rgba(255, 105, 180, 0.3);
+        }
+
+        .spin-button {
+            /* margin-top: 60px; (gapで制御) */
+            padding: 22px 70px;
+            font-size: 28px;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(135deg, #FFB6C1, #FF69B4);
+            border: none;
+            border-radius: 60px;
+            cursor: pointer;
+            box-shadow: 
+                0 10px 30px rgba(255, 105, 180, 0.3),
+                0 0 0 4px rgba(255, 255, 255, 0.5);
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+        }
+
+        .spin-button:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 
+                0 15px 40px rgba(255, 105, 180, 0.4),
+                0 0 0 4px rgba(255, 255, 255, 0.5);
+        }
+
+        .spin-button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .spin-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .roulette-wrapper.spinning {
+            animation: glow 0.8s infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% {
+                box-shadow: 
+                    0 20px 60px rgba(255, 182, 193, 0.4),
+                    0 0 0 8px rgba(255, 255, 255, 0.5);
+            }
+            50% {
+                box-shadow: 
+                    0 20px 60px rgba(255, 182, 193, 0.7),
+                    0 0 0 8px rgba(255, 255, 255, 0.8),
+                    0 0 40px rgba(255, 182, 193, 0.5);
+            }
+        }
+
+        .deco-circle {
+            -webkit-app-region: drag;
+            position: absolute;
+            border-radius: 50%;
+            border: 3px solid rgba(255, 182, 193, 0.3);
+            pointer-events: none;
+        }
+
+        .deco-1 {
+            width: 600px;
+            height: 600px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .deco-2 {
+            width: 520px;
+            height: 520px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        /* ▼▼▼ 修正 ▼▼▼ */
+        /* 結果表示欄のスタイルを追加 */
+        .result {
+            font-size: 36px;
+            font-weight: bold;
+            color: #FF69B4; /* テーマカラー */
+            text-shadow: 0 0 15px rgba(255, 105, 180, 0.5);
+            min-height: 50px;
+            font-family: 'Arial', sans-serif;
+        }
+        /* ▲▲▲ 修正 ▲▲▲ */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="roulette-wrapper" id="rouletteWrapper">
+            <div class="deco-circle deco-1"></div>
+            <div class="deco-circle deco-2"></div>
+            <div class="pointer"></div>
+            <div class="roulette" id="roulette-body">
+                <svg id="roulette-svg-target" viewBox="0 0 500 500"></svg>
+                <div class="center-circle">SPIN</div>
+            </div>
+        </div>
+        <button class="spin-button" id="spinBtn">START</button>
+        <div class="result" id="result"></div>
+        </div>
+
+    <script src="../rouletteRenderer.js"></script>
+    </body>
+</html>

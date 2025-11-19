@@ -16,7 +16,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background: radial-gradient(ellipse at center, #1b1464 0%, #0a0a1f 50%, #000000 100%);
+            background: transparent;
             font-family: 'Georgia', serif;
             overflow: hidden;
             position: relative;
@@ -27,6 +27,7 @@
             width: 100%;
             height: 100%;
             pointer-events: none;
+            background: radial-gradient(ellipse at center, #1b1464 0%, #0a0a1f 50%, #000000 100%);
         }
 
         .star {
@@ -126,6 +127,7 @@
             border-radius: 50%;
             border: 1px solid rgba(167, 139, 250, 0.3);
             animation: orbit-rotate linear infinite;
+            background: radial-gradient(ellipse at center, rgba(27, 20, 100, 0.3) 0%, rgba(10, 10, 31, 0.2) 50%, rgba(0, 0, 0, 0.1) 100%);
         }
 
         .orbit-1 {
@@ -179,7 +181,11 @@
             width: 630px;
             height: 630px;
             border-radius: 50%;
-            background: radial-gradient(circle, transparent 60%, rgba(167, 139, 250, 0.1) 70%, transparent 80%);
+            background: radial-gradient(circle, 
+                rgba(27, 20, 100, 0.4) 0%,
+                rgba(10, 10, 31, 0.3) 60%, 
+                rgba(167, 139, 250, 0.1) 70%, 
+                transparent 80%);
             animation: glow-pulse 4s ease-in-out infinite;
         }
 
@@ -200,15 +206,13 @@
             width: 600px;
             height: 600px;
             border-radius: 50%;
-            background: 
-                radial-gradient(circle at 30% 30%, rgba(27, 20, 100, 0.4) 0%, rgba(10, 10, 31, 0.9) 100%);
+            background: radial-gradient(circle at 30% 30%, rgba(27, 20, 100, 0.6) 0%, rgba(10, 10, 31, 0.9) 100%);
             border: 2px solid rgba(167, 139, 250, 0.5);
             box-shadow: 
                 0 0 60px rgba(167, 139, 250, 0.3),
                 inset 0 0 80px rgba(0, 0, 0, 0.8);
             transition: transform 5s cubic-bezier(0.17, 0.67, 0.12, 0.99);
             overflow: hidden;
-            backdrop-filter: blur(5px);
         }
 
         .roulette svg {
@@ -272,8 +276,7 @@
             width: 70%;
             height: 70%;
             border-radius: 50%;
-            background: 
-                radial-gradient(circle, rgba(10, 10, 31, 0.9) 0%, rgba(27, 20, 100, 0.8) 100%);
+            background: radial-gradient(circle, rgba(10, 10, 31, 0.9) 0%, rgba(27, 20, 100, 0.8) 100%);
             border: 2px solid rgba(167, 139, 250, 0.6);
             box-shadow: 
                 0 0 30px rgba(167, 139, 250, 0.5),
@@ -288,8 +291,7 @@
             width: 55%;
             height: 55%;
             border-radius: 50%;
-            background: 
-                radial-gradient(circle at 35% 35%, #ffffff 0%, rgba(167, 139, 250, 0.9) 50%, rgba(10, 10, 31, 0.8) 100%);
+            background: radial-gradient(circle at 35% 35%, #ffffff 0%, rgba(167, 139, 250, 0.9) 50%, rgba(10, 10, 31, 0.8) 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -356,8 +358,12 @@
             font-size: 26px;
             font-weight: normal;
             color: #ffffff;
-            background: 
+            background: linear-gradient(135deg, 
+                rgba(27, 20, 100, 0.8) 0%, 
+                rgba(10, 10, 31, 0.9) 50%, 
+                rgba(0, 0, 0, 0.8) 100%),
                 linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(167, 139, 250, 0.3) 50%, rgba(236, 72, 153, 0.3) 100%);
+            background-blend-mode: normal, screen;
             border: 2px solid rgba(167, 139, 250, 0.8);
             border-radius: 50px;
             cursor: pointer;
@@ -367,7 +373,6 @@
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 6px;
-            backdrop-filter: blur(10px);
             position: relative;
             overflow: hidden;
         }

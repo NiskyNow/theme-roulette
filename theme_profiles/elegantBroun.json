@@ -1,0 +1,36 @@
+{
+  "themeId": "elegantBroun",
+  "name": "エレガントブラウン",
+
+  "segmentCss": {
+    "path": {
+      "stroke": "rgba(255, 250, 240, 0.5)",
+      "stroke-width": 2,
+      "fill-type": "radial-gradient"
+    },
+    "text": {
+      "font": "600 26px Georgia",
+      "fill": "#5A4A3A",
+      "text-shadow": "0px 1px 0px rgba(90, 74, 58, 0.2)"
+    }
+  },
+
+  "colorProfile": {
+    "type": "gradient-list",
+    "comment": "元のJSから抽出した8色の茶系グラデーション。中間色も生成可能。",
+    "colors": [
+      "#D4B5A0",
+      "#C9A88E",
+      "#BFA38C",
+      "#B39B8A",
+      "#A89485",
+      "#9E8B7E",
+      "#968579",
+      "#8B7B70"
+    ]
+  },
+
+  "svgViewBox": "0 0 500 500",
+  "textVerticalOffset": 8,
+  "textLineHeight": 0
+}

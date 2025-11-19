@@ -72,6 +72,7 @@
     "stubborn-fs": "^2.0.0",
     "stubborn-utils": "^1.0.2",
     "sumchecker": "^3.0.1",
+    "sweetalert2": "^11.26.3",
     "tagged-tag": "^1.0.0",
     "type-fest": "^5.2.0",
     "uint8array-extras": "^1.5.0",

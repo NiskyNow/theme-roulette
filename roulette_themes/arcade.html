@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>アーケードルーレット</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: transparent; /* 背景を透明に */
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px; 
+            z-index: 1;
+        }
+
+        .roulette-wrapper {
+            position: relative;
+            width: 580px;
+            height: 580px;
+            -webkit-app-region: drag;
+        }
+
+        .arcade-frame {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 620px;
+            height: 620px;
+            background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+            clip-path: polygon(
+                0% 5%, 5% 0%, 95% 0%, 100% 5%,
+                100% 95%, 95% 100%, 5% 100%, 0% 95%
+            );
+            box-shadow: 
+                0 0 0 6px #00ff00,
+                0 0 30px rgba(0, 255, 0, 0.5),
+                inset 0 0 30px rgba(0, 0, 0, 0.8);
+        }
+
+        .led-lights {
+            position: absolute;
+            border-radius: 50%;
+            animation: led-blink 1s ease-in-out infinite;
+        }
+
+        .led-1 { top: 2%; left: 10%; width: 15px; height: 15px; background: #ff0000; box-shadow: 0 0 15px #ff0000; animation-delay: 0s; }
+        .led-2 { top: 2%; right: 10%; width: 15px; height: 15px; background: #ffff00; box-shadow: 0 0 15px #ffff00; animation-delay: 0.2s; }
+        .led-3 { bottom: 2%; left: 10%; width: 15px; height: 15px; background: #00ff00; box-shadow: 0 0 15px #00ff00; animation-delay: 0.4s; }
+        .led-4 { bottom: 2%; right: 10%; width: 15px; height: 15px; background: #00ffff; box-shadow: 0 0 15px #00ffff; animation-delay: 0.6s; }
+
+        @keyframes led-blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .roulette {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 580px;
+            height: 580px;
+            border-radius: 50%;
+            background: #0f3460;
+            border: 5px solid #00ff00;
+            box-shadow: 
+                0 0 30px rgba(0, 255, 0, 0.5),
+                inset 0 0 50px rgba(0, 0, 0, 0.8);
+            overflow: hidden;
+        }
+
+        .roulette svg {
+            width: 100%;
+            height: 100%;
+            /* ▼▼▼ 修正 ▼▼▼ */
+            transition: transform 5s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+            position: relative;
+            z-index: 5;
+            /* ▲▲▲ 修正 ▲▲▲ */
+        }
+
+        /* .segment-path と .segment-text は JSON から読み込まれる */
+        .segment-path {
+            stroke: #00ff00;
+            stroke-width: 4;
+        }
+        .segment-text {
+            font-size: 26px;
+            font-weight: bold;
+            text-anchor: middle;
+            dominant-baseline: middle;
+            pointer-events: none;
+            fill: #ffffff;
+            filter: drop-shadow(2px 2px 0 #000000);
+            font-family: 'Courier New', monospace;
+        }
+
+
+        .center-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 130px;
+            height: 130px;
+            z-index: 10;
+        }
+
+        .button-outer {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: 
+                repeating-conic-gradient(
+                    from 0deg,
+                    #ff0000 0deg 45deg,
+                    #ffff00 45deg 90deg,
+                    #00ff00 90deg 135deg,
+                    #00ffff 135deg 180deg,
+                    #0000ff 180deg 225deg,
+                    #ff00ff 225deg 270deg,
+                    #ff0000 270deg 315deg,
+                    #ffff00 315deg 360deg
+                );
+            border-radius: 50%;
+            animation: rainbow-spin 3s linear infinite;
+            opacity: 0.8;
+        }
+
+        @keyframes rainbow-spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .button-inner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 75%;
+            height: 75%;
+            border-radius: 50%;
+            background: #1a1a2e;
+            border: 4px solid #00ff00;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #00ff00;
+            text-shadow: 0 0 10px #00ff00;
+            font-weight: bold;
+            box-shadow: 
+                0 0 20px rgba(0, 255, 0, 0.5),
+                inset 0 0 20px rgba(0, 0, 0, 0.8);
+            animation: pulse-green 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse-green {
+            0%, 100% {
+                box-shadow: 
+                    0 0 20px rgba(0, 255, 0, 0.5),
+                    inset 0 0 20px rgba(0, 0, 0, 0.8);
+            }
+            50% {
+                box-shadow: 
+                    0 0 30px rgba(0, 255, 0, 0.8),
+                    inset 0 0 30px rgba(0, 0, 0, 0.6);
+            }
+        }
+
+        .pointer {
+            position: absolute;
+            top: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 22px solid transparent;
+            border-right: 22px solid transparent;
+            border-top: 50px solid #ff0000;
+            filter: drop-shadow(0 0 15px #ff0000);
+            z-index: 20;
+            animation: pointer-glow 0.5s ease-in-out infinite;
+        }
+
+        @keyframes pointer-glow {
+            from {
+                filter: drop-shadow(0 0 15px #ff0000);
+            }
+            to {
+                filter: drop-shadow(0 0 25px #ff0000) drop-shadow(0 0 35px #ff0000);
+            }
+        }
+
+        .button {
+            -webkit-app-region: no-drag;
+            padding: 18px 70px;
+            font-size: 32px;
+            font-weight: bold;
+            color: #000000;
+            background: linear-gradient(180deg, #ffff00 0%, #ff8800 100%);
+            border: 5px solid #00ff00;
+            border-radius: 0;
+            cursor: pointer;
+            box-shadow: 
+                5px 5px 0 #008800,
+                0 0 30px rgba(0, 255, 0, 0.5);
+            transition: all 0.1s ease;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            font-family: 'Courier New', monospace;
+            clip-path: polygon(5% 0%, 100% 0%, 95% 100%, 0% 100%);
+            position: relative;
+        }
+
+        .button::before {
+            content: '▶';
+            position: absolute;
+            left: 20px;
+            animation: arrow-flash 0.8s ease-in-out infinite;
+        }
+
+        .button::after {
+            content: '◀';
+            position: absolute;
+            right: 20px;
+            animation: arrow-flash 0.8s ease-in-out infinite;
+            animation-delay: 0.4s;
+        }
+
+        @keyframes arrow-flash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .button:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 
+                7px 7px 0 #008800,
+                0 0 40px rgba(0, 255, 0, 0.7);
+        }
+
+        .button:active {
+            transform: translate(3px, 3px);
+            box-shadow: 
+                2px 2px 0 #008800,
+                0 0 20px rgba(0, 255, 0, 0.3);
+        }
+
+        .button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .result {
+            font-size: 36px;
+            font-weight: bold;
+            color: #00ff00;
+            text-shadow: 0 0 20px #00ff00;
+            min-height: 50px;
+            font-family: 'Courier New', monospace;
+            -webkit-app-region: no-drag;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="roulette-wrapper">
+            <div class="arcade-frame">
+                <div class="led-lights led-1"></div>
+                <div class="led-lights led-2"></div>
+                <div class="led-lights led-3"></div>
+                <div class="led-lights led-4"></div>
+            </div>
+            <div class="pointer"></div>
+            <div class="roulette" id="roulette-body">
+                <svg viewBox="0 0 580 580" id="roulette-svg-target"></svg>
+                <div class="center-button">
+                    <div class="button-outer"></div>
+                    <div class="button-inner">START</div>
+                </div>
+            </div>
+        </div>
+        
+        <button class="button" id="spinBtn">PRESS START</button>
+        <div class="result" id="result"></div>
+        </div>
+
+    <script src="../rouletteRenderer.js"></script>
+    </body>
+</html>

@@ -1,0 +1,35 @@
+{
+  "themeId": "neon_cyber",
+  "name": "ネオンサイバー",
+
+  "segmentCss": {
+    "path": {
+      "stroke": "#000000",
+      "stroke-width": 3,
+      "filter": "drop-shadow(0 0 5px currentColor)"
+    },
+    "text": {
+      "font-size": "22px",
+      "font-weight": "bold",
+      "fill": "white",
+      "filter": "drop-shadow(0 0 8px rgba(0, 0, 0, 1))",
+      "font-family": "'Arial Black', 'Arial', sans-serif"
+    }
+  },
+
+  "colorProfile": {
+    "type": "fixed-list",
+    "comment": "元のJSから抽出した固定の5色。ネオンカラー。",
+    "colors": [
+      "#ff0066",
+      "#00ff88",
+      "#ffaa00",
+      "#0088ff",
+      "#aa00ff"
+    ]
+  },
+
+  "svgViewBox": "0 0 550 550",
+  "textVerticalOffset": -0.5,
+  "textLineHeight": 26
+}

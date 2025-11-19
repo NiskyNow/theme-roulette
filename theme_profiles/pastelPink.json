@@ -1,0 +1,35 @@
+{
+  "themeId": "pastelPink",
+  "name": "パステルピンク",
+
+  "segmentCss": {
+    "path": {
+      "stroke": "rgba(255, 255, 255, 0.6)",
+      "stroke-width": 4
+    },
+    "text": {
+      "font": "bold 30px Arial",
+      "fill": "#333333",
+      "text-shadow": "0px 2px 0px rgba(0, 0, 0, 0.15)"
+    }
+  },
+
+  "colorProfile": {
+    "type": "fixed-list",
+    "comment": "元のJSから抽出した固定の8色。パステルカラー。",
+    "colors": [
+      "#FFB3BA",
+      "#FFDFBA",
+      "#FFFFBA",
+      "#BAFFC9",
+      "#BAE1FF",
+      "#D4BAFF",
+      "#FFBAF3",
+      "#FFD4E5"
+    ]
+  },
+
+  "svgViewBox": "0 0 500 500",
+  "textVerticalOffset": 10,
+  "textLineHeight": 0
+}

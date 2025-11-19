@@ -1,0 +1,35 @@
+{
+  "themeId": "candy",
+  "name": "キャンディ",
+
+  "segmentCss": {
+    "path": {
+      "stroke": "#ffffff",
+      "stroke-width": 5,
+      "filter": "drop-shadow(0 0 3px rgba(255, 255, 255, 0.5))"
+    },
+    "text": {
+      "font-size": "26px",
+      "font-weight": "bold",
+      "fill": "#ffffff",
+      "filter": "drop-shadow(0 3px 6px rgba(0, 0, 0, 0.4))",
+      "font-family": "'Comic Sans MS', 'Arial', sans-serif"
+    }
+  },
+
+  "colorProfile": {
+    "type": "fixed-list",
+    "comment": "元のJSから抽出した固定の5色。パステルカラー。",
+    "colors": [
+      "#ff6b9d",
+      "#ffa500",
+      "#00d4ff",
+      "#c471f5",
+      "#4ade80"
+    ]
+  },
+
+  "svgViewBox": "0 0 580 580",
+  "textVerticalOffset": -0.5,
+  "textLineHeight": 30
+}
