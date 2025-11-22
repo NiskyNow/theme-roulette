@@ -1,4 +1,4 @@
-// main.js (v1.4.6 - テーマ維持切り替え対応)
+// main.js (v2.3 - 起動時ルーレット & 幅広版)
 
 const { app, BrowserWindow, ipcMain, Menu } = require('electron');
 const path = require('path');
@@ -35,7 +35,7 @@ let rouletteWindow;
 let currentRouletteTheme = null;
 let currentRouletteProfileId = null; 
 
-// --- 2. 設定ウィンドウ (変更なし) ---
+// --- 2. 設定ウィンドウ ---
 function createSettingsWindow() {
   if (settingsWindow && !settingsWindow.isDestroyed()) {
     settingsWindow.focus();
@@ -56,10 +56,9 @@ function createSettingsWindow() {
   settingsWindow.loadFile('settings.html');
 }
 
-// --- 3. ルーレット本体を開く関数 (変更なし) ---
+// --- 3. ルーレット本体を開く関数 ---
 async function createRouletteWindow(profile) {
   console.log("--- createRouletteWindow が呼ばれました ---");
-  console.log(`(呼び出し時) rouletteWindow の状態: ${rouletteWindow ? '存在します' : 'null または undefined'}`);
 
   if (!profile || !profile.settings || !profile.settings.theme) {
       console.error('無効なプロファイルです。テーマを読み込めません。');
@@ -67,36 +66,29 @@ async function createRouletteWindow(profile) {
   }
   
   if (rouletteWindow && !rouletteWindow.isDestroyed()) {
-    console.log("古いウィンドウが存在するため、閉じるのを待機します...");
-    await new Promise((resolve) => {
-      rouletteWindow.once('closed', () => {
-        console.log("--- 'closed' イベント (Promise内) が発火しました ---");
-        resolve();
-      });
-      rouletteWindow.close();
-    });
-    console.log("古いウィンドウが閉じたため、新規作成を続行します。");
-  } else {
-    console.log("古いウィンドウは存在しないため、.close() をスキップします。");
+      console.warn("ウィンドウが既に存在します。再生成せずフォーカスします。");
+      rouletteWindow.focus();
+      return;
   }
 
-  const themeName = profile.settings.theme;
-  const themeHtmlPath = `roulette_themes/${themeName}.html`;
+  const themeHtmlPath = 'roulette_themes/master.html';
   const fullHtmlPath = path.join(__dirname, themeHtmlPath);
   
   if (!fs.existsSync(fullHtmlPath)) {
-      console.error(`テーマファイルが見つかりません: ${themeHtmlPath}`);
+      console.error(`マスターファイルが見つかりません: ${themeHtmlPath}`);
+      // 設定画面が開いていればエラーを送る
       if (settingsWindow && !settingsWindow.isDestroyed()) {
-          settingsWindow.webContents.send('data-save-error', `テーマファイル(${themeName}.html)が見つかりません。`);
+          settingsWindow.webContents.send('data-save-error', `システムエラー: ${themeHtmlPath} が見つかりません。`);
       }
       return;
   }
 
   rouletteWindow = new BrowserWindow({
-    width: 800,
-    height: 900,
+    width: 620,
+    height: 800, // ▼▼▼ 修正: 700 -> 800 に拡張 ▼▼▼
     transparent: true,
     frame: false,
+    resizable: true,
     webPreferences: {
       preload: path.join(__dirname, 'Preload.js'),
       contextIsolation: true,
@@ -104,7 +96,7 @@ async function createRouletteWindow(profile) {
     },
   });
 
-  console.log(`Loading theme: ${themeHtmlPath}`);
+  console.log(`Loading Master Shell: ${themeHtmlPath}`);
   rouletteWindow.loadFile(fullHtmlPath);
   
   currentRouletteTheme = profile.settings.theme;
@@ -121,20 +113,40 @@ async function createRouletteWindow(profile) {
   });
 
   rouletteWindow.on('closed', () => {
-    console.log("--- (新規) 'closed' イベントが発火しました ---");
+    console.log("--- 'closed' イベントが発火しました ---");
     rouletteWindow = null;
     currentRouletteTheme = null;
     currentRouletteProfileId = null;
   });
 }
 
-// --- 4. アプリ起動時の動作 (変更なし) ---
+// --- 4. アプリ起動時の動作 (修正) ---
 app.whenReady().then(() => {
-  createSettingsWindow(); 
+  // ▼▼▼ 修正 (v2.3) 起動時にルーレットを開く ▼▼▼
+  const appData = store.get('appData');
+  
+  // 有効なプロファイルがあるか確認
+  if (appData && appData.profiles && appData.profiles.length > 0) {
+      // 前回のアクティブプロファイル、または最初のプロファイルを取得
+      const activeProfile = appData.profiles.find(p => p.id === appData.activeProfileId) || appData.profiles[0];
+      
+      // ルーレットを開く
+      createRouletteWindow(activeProfile);
+  } else {
+      // データがない場合（初回起動など）は設定画面を開く
+      createSettingsWindow();
+  }
+  // ▲▲▲ 修正 ▲▲▲
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-      createSettingsWindow();
+        const appData = store.get('appData');
+        if (appData && appData.profiles && appData.profiles.length > 0) {
+             const activeProfile = appData.profiles.find(p => p.id === appData.activeProfileId) || appData.profiles[0];
+             createRouletteWindow(activeProfile);
+        } else {
+             createSettingsWindow();
+        }
     }
   });
 });
@@ -145,9 +157,9 @@ app.on('window-all-closed', () => {
   }
 });
 
-// --- 5. 新しいIPC（通信）ハンドラ ---
+// --- 5. IPCハンドラ ---
 
-// (A) 'load-data' (変更なし)
+// (A) 'load-data'
 ipcMain.on('load-data', (event) => {
   let data = null; 
   try {
@@ -160,7 +172,7 @@ ipcMain.on('load-data', (event) => {
   }
 });
 
-// (B) 'save-data' (変更なし)
+// (B) 'save-data'
 ipcMain.on('save-data', (event, appData) => {
   try {
     store.set('appData', appData);
@@ -175,7 +187,7 @@ ipcMain.on('save-data', (event, appData) => {
   }
 });
 
-// (C) 'run-or-update-roulette' (変更なし)
+// (C) 'run-or-update-roulette'
 ipcMain.on('run-or-update-roulette', async (event, profile) => {
     console.log("--- 'run-or-update-roulette' が呼ばれました ---");
 
@@ -184,33 +196,28 @@ ipcMain.on('run-or-update-roulette', async (event, profile) => {
         return;
     }
 
-    // 1. ルーレットが現在開いているか？
     if (!rouletteWindow || rouletteWindow.isDestroyed()) {
         console.log("ルーレットが (開いていない) ため、新規作成します。");
         await createRouletteWindow(profile); 
     } else {
-        // 2. テーマ または プロファイルID が変更されているか？
-        if (profile.id !== currentRouletteProfileId || profile.settings.theme !== currentRouletteTheme) {
-            console.log("テーマまたはプロファイルが変更されたため、ウィンドウを再生成します。");
-            await createRouletteWindow(profile); 
-        } else {
-            console.log("テーマは同じなため、データのみ更新します。");
-            const rouletteData = {
-              items: profile.items,
-              settings: profile.settings
-            };
-            if (rouletteWindow && !rouletteWindow.isDestroyed()) {
-                rouletteWindow.webContents.send('update-roulette-data', rouletteData);
-                
-                // ▼▼▼ 追加 (v1.4.10) ▼▼▼
-                // データ更新時でもウィンドウを最前面に持ってくる
-                rouletteWindow.focus();
-                // ▲▲▲ 追加 ▲▲▲
-            }
+        console.log("ウィンドウが存在するため、データを更新してテーマを切り替えます。");
+        
+        currentRouletteTheme = profile.settings.theme;
+        currentRouletteProfileId = profile.id;
+
+        const rouletteData = {
+          items: profile.items,
+          settings: profile.settings
+        };
+        
+        if (rouletteWindow && !rouletteWindow.isDestroyed()) {
+            rouletteWindow.webContents.send('update-roulette-data', rouletteData);
+            rouletteWindow.focus();
         }
     }
 });
-// (D) 'get-theme-profile' (変更なし)
+
+// (D) 'get-theme-profile'
 ipcMain.handle('get-theme-profile', (event, themeName) => {
     const filePath = path.join(__dirname, 'theme_profiles', `${themeName}.json`);
     console.log(`Reading profile: ${filePath}`);
@@ -223,11 +230,52 @@ ipcMain.handle('get-theme-profile', (event, themeName) => {
     }
 });
 
+// (E) 'get-theme-list' (v1.5.1)
+ipcMain.handle('get-theme-list', () => {
+    const themesDir = path.join(__dirname, 'theme_profiles');
+    try {
+        const files = fs.readdirSync(themesDir);
+        const themes = files
+            .filter(file => file.endsWith('.json'))
+            .map(file => {
+                try {
+                    const content = fs.readFileSync(path.join(themesDir, file), 'utf8');
+                    const json = JSON.parse(content);
+                    return { id: json.themeId, name: json.name };
+                } catch (e) {
+                    console.error(`Failed to parse theme: ${file}`, e);
+                    return null;
+                }
+            })
+            .filter(t => t !== null);
+        return themes;
+    } catch (e) {
+        console.error("Failed to read theme directory", e);
+        return [];
+    }
+});
 
-// ▼▼▼ 修正 (v1.4.6) 右クリックメニューのハンドラ ▼▼▼
+// (F) 右クリックメニュー
 ipcMain.on('show-roulette-context-menu', (event) => {
     const appData = store.get('appData');
     const profiles = appData.profiles || [];
+
+    // テーマ一覧取得 (メニュー用)
+    let themeList = [];
+    try {
+        const themesDir = path.join(__dirname, 'theme_profiles');
+        const files = fs.readdirSync(themesDir);
+        themeList = files
+            .filter(file => file.endsWith('.json'))
+            .map(file => {
+                try {
+                    const content = fs.readFileSync(path.join(themesDir, file), 'utf8');
+                    const json = JSON.parse(content);
+                    return { id: json.themeId, name: json.name };
+                } catch (e) { return null; }
+            })
+            .filter(t => t !== null);
+    } catch (e) {}
 
     const profileSubmenu = profiles.map(p => {
         return {
@@ -235,47 +283,28 @@ ipcMain.on('show-roulette-context-menu', (event) => {
             type: 'radio',
             checked: p.id === currentRouletteProfileId, 
             click: async () => {
-                console.log(`Menu: Switching to profile ${p.name} (Theme inheriting: ${currentRouletteTheme})`);
-
-                // 1. ストア内の対象プロファイルを特定する
+                console.log(`Menu: Switching to profile ${p.name}`);
+                
                 const targetProfileIndex = appData.profiles.findIndex(prof => prof.id === p.id);
                 if (targetProfileIndex === -1) return;
 
-                // ▼▼▼ 修正ポイント ▼▼▼
-                // 現在開いているテーマがあれば、切り替え先のプロファイルにもそのテーマを強制適用する
                 if (currentRouletteTheme) {
                     appData.profiles[targetProfileIndex].settings.theme = currentRouletteTheme;
                 }
-                // ▲▲▲ 修正ポイント ▲▲▲
                 
                 const targetProfile = appData.profiles[targetProfileIndex];
-
-                // 2. ストアの 'activeProfileId' と '更新されたプロファイル' を保存する
                 appData.activeProfileId = targetProfile.id;
                 store.set('appData', appData);
+                currentRouletteProfileId = targetProfile.id;
 
-                // 3. ルーレットを切り替える (同じテーマなら再生成せずデータ更新だけになる)
-                // run-or-update-roulette と同じロジックを通すため、
-                // ここで直接呼ぶのではなく、イベントハンドラと同じ処理を行うか、関数化するのが理想だが
-                // 今回は createRouletteWindow へのロジックを記述する。
-                
-                // もしテーマが同じならウィンドウを閉じずにデータ更新だけで済ませたい場合:
-                if (targetProfile.settings.theme === currentRouletteTheme && rouletteWindow && !rouletteWindow.isDestroyed()) {
-                     console.log("Menu: テーマ維持のためデータのみ更新");
-                     const rouletteData = {
-                        items: targetProfile.items,
-                        settings: targetProfile.settings
-                     };
+                if (rouletteWindow && !rouletteWindow.isDestroyed()) {
+                     const rouletteData = { items: targetProfile.items, settings: targetProfile.settings };
                      rouletteWindow.webContents.send('update-roulette-data', rouletteData);
-                     
-                     // 現在のIDを更新
-                     currentRouletteProfileId = targetProfile.id;
+                     rouletteWindow.focus();
                 } else {
-                    // テーマが変わった(あるいはウィンドウがない)場合は再生成
                     await createRouletteWindow(targetProfile);
                 }
 
-                // 4. 設定ウィンドウが開いていれば、データを再読み込みさせて同期する
                 if (settingsWindow && !settingsWindow.isDestroyed()) {
                     settingsWindow.webContents.send('data-loaded', appData);
                 }
@@ -283,17 +312,49 @@ ipcMain.on('show-roulette-context-menu', (event) => {
         };
     });
 
+    const themeSubmenu = themeList.map(t => {
+        return {
+            label: t.name,
+            type: 'radio',
+            checked: t.id === currentRouletteTheme,
+            click: () => {
+                console.log(`Menu: Changing theme to ${t.name}`);
+                const currentProfileIndex = appData.profiles.findIndex(p => p.id === currentRouletteProfileId);
+                if (currentProfileIndex !== -1) {
+                    appData.profiles[currentProfileIndex].settings.theme = t.id;
+                    store.set('appData', appData);
+                    currentRouletteTheme = t.id;
+                    
+                    const rouletteData = {
+                        items: appData.profiles[currentProfileIndex].items,
+                        settings: appData.profiles[currentProfileIndex].settings
+                    };
+                    
+                    if (rouletteWindow && !rouletteWindow.isDestroyed()) {
+                        rouletteWindow.webContents.send('update-roulette-data', rouletteData);
+                        rouletteWindow.focus();
+                    }
+                    if (settingsWindow && !settingsWindow.isDestroyed()) {
+                        settingsWindow.webContents.send('data-loaded', appData);
+                    }
+                }
+            }
+        };
+    });
+
     const menuTemplate = [
         {
-            label: 'プロファイルを選択',
-            submenu: profileSubmenu.length > 0 ? profileSubmenu : [{ label: 'プロファイルがありません', enabled: false }]
+            label: 'プロファイル (Profiles)',
+            submenu: profileSubmenu.length > 0 ? profileSubmenu : [{ label: 'なし', enabled: false }]
+        },
+        {
+            label: 'テーマ (Themes)',
+            submenu: themeSubmenu.length > 0 ? themeSubmenu : [{ label: 'なし', enabled: false }]
         },
         { type: 'separator' },
         {
             label: '設定画面を開く',
-            click: () => {
-                createSettingsWindow();
-            }
+            click: () => { createSettingsWindow(); }
         },
         {
             label: 'ルーレットを閉じる',
@@ -310,4 +371,3 @@ ipcMain.on('show-roulette-context-menu', (event) => {
          contextMenu.popup({ window: rouletteWindow });
     }
 });
-// ▲▲▲ 修正 ▲▲▲

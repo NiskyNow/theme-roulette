@@ -19,7 +19,7 @@ const state = {
 const dom = {};
 
 /* --- 初期化処理 --- */
-window.onload = () => {
+window.onload = async () => { // async に変更
     dom.profileSelect = document.getElementById('profile-select');
     dom.itemsContainer = document.getElementById('items-list-container');
     dom.itemTemplate = document.getElementById('item-template');
@@ -32,8 +32,39 @@ window.onload = () => {
 
     setupEventListeners();
     setupIPCListeners();
+    
+    // ▼▼▼ 追加 (v1.5.1) テーマ一覧を動的に読み込む ▼▼▼
+    await loadThemeOptions();
+    // ▲▲▲ 追加 ▲▲▲
+
     api.send('load-data');
 };
+async function loadThemeOptions() {
+    try {
+        const themes = await api.getThemeList();
+        
+        // 既存のオプションをクリア
+        dom.themeSelect.innerHTML = '';
+        
+        if (themes.length === 0) {
+            const option = document.createElement('option');
+            option.text = "テーマが見つかりません";
+            dom.themeSelect.add(option);
+            return;
+        }
+
+        // リストに追加
+        themes.forEach(theme => {
+            const option = document.createElement('option');
+            option.value = theme.id;
+            option.textContent = theme.name;
+            dom.themeSelect.appendChild(option);
+        });
+        
+    } catch (error) {
+        console.error("テーマ一覧の読み込みに失敗しました:", error);
+    }
+}
 
 /**
  * すべてのUIイベントリスナーをここで一元管理します。

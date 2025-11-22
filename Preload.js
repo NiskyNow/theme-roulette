@@ -32,7 +32,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     const profile = await ipcRenderer.invoke('get-theme-profile', themeName);
     return profile;
   },
-  
+  getThemeList: async () => {
+    return await ipcRenderer.invoke('get-theme-list');
+  },
   // ▼▼▼ 修正 (v1.4.4) 'openSettings' -> 'showRouletteContextMenu' ▼▼▼
   // 右クリックで main.js にコンテキストメニューを要求
   showRouletteContextMenu: () => {
