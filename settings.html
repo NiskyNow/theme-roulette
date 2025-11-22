@@ -12,7 +12,6 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
 <style>
-    /* (user_170 のCSS... 長いので省略... 変更なし) */
     .swal2-popup { font-family: 'Nunito', 'M PLUS Rounded 1c', sans-serif; }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     input, button, select, textarea { font-family: inherit; }
@@ -48,14 +47,33 @@
     .item-card { background: #F9F5F0; border: none; border-radius: 12px; padding: 12px; align-items: center; transition: all 0.3s ease; box-shadow: 6px 6px 12px rgba(217, 210, 201, 0.6), -6px -6px 12px rgba(255, 255, 255, 0.9); }
     .item-card:hover { box-shadow: 8px 8px 16px rgba(217, 210, 201, 0.6), -8px -8px 16px rgba(255, 255, 255, 0.9); transform: translateY(-1px); }
     .item-index { width: 36px; height: 36px; background: #F3EBE0; color: #7A6A62; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; box-shadow: inset 2px 2px 4px rgba(217, 210, 201, 0.7), inset -2px -2px 4px rgba(255, 255, 255, 0.9); }
-    .item-name-input, .prob-input { padding: 10px 12px; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; transition: all 0.3s ease; width: 100%; background: #F9F5F0; box-shadow: inset 3px 3px 6px rgba(217, 210, 201, 0.7), inset -3px -3px 6px rgba(255, 255, 255, 0.9); }
+    
+    /* ▼▼▼ 修正: input と textarea 両対応のスタイル ▼▼▼ */
+    .item-name-input, .prob-input { 
+        padding: 10px 12px; 
+        border: none; 
+        border-radius: 8px; 
+        font-size: 14px; 
+        font-weight: 500; 
+        transition: all 0.3s ease; 
+        width: 100%; 
+        background: #F9F5F0; 
+        box-shadow: inset 3px 3px 6px rgba(217, 210, 201, 0.7), inset -3px -3px 6px rgba(255, 255, 255, 0.9); 
+        font-family: inherit;
+    }
+    /* textarea専用設定: 縦にリサイズ可能、デフォルト高さ確保 */
+    textarea.item-name-input {
+        resize: vertical;
+        min-height: 44px;
+        line-height: 1.4;
+        overflow: hidden;
+    }
+    /* ▲▲▲ 修正 ▲▲▲ */
+
     .item-name-input:focus, .prob-input:focus { outline: none; }
     .prob-display { text-align: center; font-weight: 700; font-size: 16px; color: #6BAAC0; padding: 8px; }
     .prob-input { text-align: center; }
-    
-    /* ▼▼▼ 修正: 確率入力欄が空(auto)の場合のスタイル ▼▼▼ */
     .prob-input:placeholder-shown { color: #6BAAC0; font-style: italic; font-weight: bold; }
-    /* ▲▲▲ 修正 ▲▲▲ */
 
     .delete-btn-wrapper { display: flex; justify-content: center; }
     .delete-btn { width: 40px; height: 40px; background: transparent; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s ease; }
@@ -166,7 +184,7 @@
 <template id="item-template">
     <div class="item-card items-grid" data-index="0">
         <div class="item-index">1</div>
-        <input class="item-name-input" type="text" placeholder="項目名 (必須)">
+        <textarea class="item-name-input" placeholder="項目名 (必須)" rows="1"></textarea>
         <input type="number" placeholder="Auto" class="prob-input prob-manual-input" min="0" max="100" step="0.1">
         <div class="delete-btn-wrapper">
             <button class="delete-btn">🗑️</button>
