@@ -24,6 +24,20 @@ function initializeApp() {
   let isSpinning = false;
   let currentRotation = 0;    
 
+  // ▼▼▼ 音声ファイルの読み込み ▼▼▼
+  // (Tick関連のコードは削除してOKです)
+  
+  const audioStart = new Audio('../sounds/start.mp3');
+  const audioSpin = new Audio('../sounds/spin.mp3'); 
+  const audioSlow = new Audio('../sounds/slow.mp3'); // ▼ 新しい slow.mp3
+  const audioFake = new Audio('../sounds/fake.mp3');
+  const audioResult = new Audio('../sounds/result.mp3');
+
+  audioSpin.loop = false; 
+  audioSpin.playbackRate = 1.0; 
+  audioSlow.loop = true; // ゆっくり音はループ推奨
+  
+
   // --- DOM要素 ---
   const rouletteSVG = document.getElementById('roulette-svg-target'); 
   const spinBtn = document.getElementById('spinBtn');
@@ -333,57 +347,156 @@ function initializeApp() {
       if (isSpinning) return;
       if (processedItems.length === 0) return;
       
+      resultDiv.textContent = ''; 
+      
       isSpinning = true;
       spinBtn.disabled = true;
       
       const foreground = document.getElementById('theme-foreground-slot');
       if (foreground) foreground.style.pointerEvents = 'none';
 
-      const winningItem = getWeightedRandomItem();
-      if (!winningItem) {
-          resultDiv.textContent = 'エラー';
-          isSpinning = false;
-          spinBtn.disabled = false;
-          if (foreground) foreground.style.pointerEvents = 'auto'; 
-          return;
+      // 1. スタート音
+      audioStart.currentTime = 0;
+      audioStart.play().catch(() => {});
+
+      // 2. 回転音
+      audioSpin.currentTime = 0;
+      audioSpin.volume = 1.0; 
+      audioSpin.play().catch(() => {});
+
+      // ▼▼▼ 時間設定 ▼▼▼
+      let spinSoundDuration = audioSpin.duration;
+      if (isNaN(spinSoundDuration) || !isFinite(spinSoundDuration)) spinSoundDuration = 6.0;
+
+      // Spinパートの時間（音が終わる少し前にSlowへ）
+      const SPIN_DURATION = Math.max(3, spinSoundDuration - 0.3);
+      
+      // ▼▼▼ 変更: Slowパートを長く設定 ▼▼▼
+      // 安全策として時間を延ばす許可をいただいたので、余裕を持って設定します
+      const SLOW_DURATION = 3.5; 
+      // ▲▲▲ 変更 ▲▲▲
+
+      // --- ターゲット決定 ---
+      
+      let finalWinner = getWeightedRandomItem();
+      if (!finalWinner) return;
+
+      // フェイク用ターゲット計算
+      let visualTargetItem = finalWinner;
+      let isFakeExecution = false;
+
+      if (fakeSpin && Math.random() < 0.33) {
+          isFakeExecution = true;
+          const dir = Math.random() < 0.5 ? -1 : 1;
+          const fakeIndex = (finalWinner.index + dir + processedItems.length) % processedItems.length;
+          visualTargetItem = processedItems[fakeIndex];
       }
 
-      const winningItemName = winningItem.name.replace('\n', ' ');
-      const targetAngleFromTop = winningItem.centerAngle;
+      const winningItemName = finalWinner.name.replace('\n', ' ');
+
+      // 角度計算
+      const targetAngleFromTop = visualTargetItem.centerAngle;
       const targetMod = (360 - targetAngleFromTop) % 360;
       const currentMod = currentRotation % 360;
       let distance = targetMod - currentMod;
       if (distance < 0) distance += 360;
 
-      const minSpins = 5;
-      const extraSpins = Math.floor(Math.random() * 3);
-      const spinDegrees = (minSpins + extraSpins) * 360;
-      const nextRotation = currentRotation + spinDegrees + distance;
-
-      if (fakeSpin && Math.random() < 0.33) {
-          const dir = Math.random() < 0.5 ? -1 : 1;
-          const fakeIndex = (winningItem.index + dir + processedItems.length) % processedItems.length;
-          const fakeItem = processedItems[fakeIndex];
-          const fakeTargetFromTop = fakeItem.centerAngle;
-          const fakeTargetMod = (360 - fakeTargetFromTop) % 360;
-          let fakeDistance = fakeTargetMod - currentMod;
-          if (fakeDistance < 0) fakeDistance += 360;
-          const fakeFinalRotation = currentRotation + spinDegrees + fakeDistance;
-
-          forceRotate(fakeFinalRotation, 4, 'cubic-bezier(0.25, 1, 0.5, 1)');
-          setTimeout(() => { forceRotate(nextRotation, 1.5, 'ease-out'); }, 4000);
-      } else {
-          forceRotate(nextRotation, 5, 'cubic-bezier(0.17, 0.67, 0.12, 0.99)');
-      }
+      const totalSpins = 30 + Math.floor(Math.random() * 3);
+      const totalDegreesToVisualTarget = (totalSpins * 360) + distance;
       
+      // ▼▼▼ 修正箇所 1: Slowの回転量を減らす（速度を落とす） ▼▼▼
+      // 720度（2回転）を3.5秒で回ると速すぎます。360度〜450度くらいが適正です。
+      const slowDegrees = 450; 
+      // ▲▲▲ 修正 ▲▲▲
+      
+      // Spin終了地点（Slow開始地点）
+      const spinEndRotation = currentRotation + totalDegreesToVisualTarget - slowDegrees;
+      
+      // 最終ゴール地点
+      const slowEndRotation = currentRotation + totalDegreesToVisualTarget;
+
+
+      // --- アニメーション実行 ---
+
+      // 1. Spinパート (加速～減速)
+      
+      // ▼▼▼ 修正箇所 2: 仮想ターゲットをもっと遠くにする（ブレーキを弱める） ▼▼▼
+      // 「+ 200」だとブレーキがかかりすぎて止まりそうになってしまいます。
+      // 「+ 600」くらいにして、「まだ先があるから勢いを保つ」ようにCSSを騙します。
+      const virtualTarget = spinEndRotation + 600; 
+      // ▲▲▲ 修正 ▲▲▲
+      
+      // 止まらないカーブ
+      const spinEasing = 'cubic-bezier(0.5, 0, 0.2, 1)'; 
+
+      forceRotate(virtualTarget, SPIN_DURATION + 1.5, spinEasing);
+
+      // 2. Slowパートへの切り替え (SPIN_DURATION経過後)
       setTimeout(() => {
-          resultDiv.textContent = winningItemName;
+          // 音切り替え
+          audioSpin.pause();
+          audioSlow.currentTime = 0;
+          audioSlow.volume = 1.0;
+          audioSlow.play().catch(() => {});
+
+          // 線形補間でゴールまで等速移動
+          // 今どこにいても、ゴールは500度以上先にあるはずなので、必ず前進します
+          forceRotate(slowEndRotation, SLOW_DURATION, 'linear');
+
+          // 3. 停止 & フェイク判定 (Slow終了後)
+          setTimeout(() => {
+              audioSlow.pause(); // まずSlow音を止める
+
+              if (isFakeExecution) {
+                  // ▼▼▼ 修正: ここで「完全に止まった」と思わせるための「間」を作る ▼▼▼
+                  
+                  // 0.8秒待機（この間は回転も音も止まっています）
+                  setTimeout(() => {
+                      // --- フェイク演出スタート ---
+                      audioFake.currentTime = 0;
+                      audioFake.play().catch(() => {});
+
+                      // ズレ計算
+                      const finalTargetMod = (360 - finalWinner.centerAngle) % 360;
+                      const currentVisualMod = (slowEndRotation % 360);
+                      let drift = finalTargetMod - currentVisualMod;
+                      
+                      if (drift > 180) drift -= 360;
+                      if (drift < -180) drift += 360;
+
+                      const finalRealRotation = slowEndRotation + drift;
+
+                      // ズルっと動く
+                      forceRotate(finalRealRotation, 1.0, 'cubic-bezier(0.25, 1, 0.5, 1)');
+
+                      // フェイク移動完了後に結果表示
+                      setTimeout(() => {
+                          finishSpin(finalWinner.name.replace('\n', ' '), finalRealRotation);
+                      }, 1000);
+
+                  }, 800); // ★ここが調整ポイント: 800ms (0.8秒) のタメ
+
+              } else {
+                  // --- 通常終了 ---
+                  finishSpin(winningItemName, slowEndRotation);
+              }
+
+          }, SLOW_DURATION * 1000);
+
+      }, SPIN_DURATION * 1000);
+      
+      // 共通終了処理
+      function finishSpin(text, finalRot) {
+          audioResult.currentTime = 0;
+          audioResult.play().catch(() => {});
+          resultDiv.textContent = text;
           isSpinning = false;
           spinBtn.disabled = false;
           if (foreground) foreground.style.pointerEvents = 'auto'; 
-          currentRotation = nextRotation;
-      }, 5500);
+          currentRotation = finalRot;
+      }
   }
+
 
   function getWeightedRandomItem() {
       const totalWeight = processedItems.reduce((sum, item) => sum + (parseFloat(item.weight) || 0), 0);
@@ -399,10 +512,29 @@ function initializeApp() {
       return processedItems[processedItems.length - 1];
   }
 
+  // (v2.2.2) アニメーション割り込み用に現在の回転角度を取得する関数
   function forceRotate(rotationDegrees, durationSeconds, easing) {
+      const rouletteSVG = document.getElementById('roulette-svg-target');
       if (!rouletteSVG) return;
+      
+      // アニメーション切り替え時の「継ぎ目」をなくすため、一度スタイルをリセットしません。
+      // 新しい値を上書きすることでブラウザが自動的に現在地から補間してくれます。
+      // ただし、transitionプロパティは更新する必要があります。
+      
       rouletteSVG.style.transition = `transform ${durationSeconds}s ${easing}`;
       rouletteSVG.style.transform = `rotate(${rotationDegrees}deg)`;
+  }
+  
+  // 座標取得用（念のため残していますが今回は自動補間に任せています）
+  function getCurrentRotation(element) {
+      const style = window.getComputedStyle(element);
+      const transform = style.transform || style.webkitTransform;
+      if (!transform || transform === 'none') return 0;
+      const values = transform.split('(')[1].split(')')[0].split(',');
+      const a = parseFloat(values[0]);
+      const b = parseFloat(values[1]);
+      let angle = Math.round(Math.atan2(b, a) * (180 / Math.PI));
+      return (angle < 0) ? angle + 360 : angle;
   }
 
   spinBtn.addEventListener('click', spin);
