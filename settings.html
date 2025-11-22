@@ -39,9 +39,7 @@
     .section-title { font-size: 20px; font-weight: 700; color: #5A4A42; }
     .total-prob { padding: 10px 16px; background: #A1D8D4; color: white; border-radius: 10px; font-weight: 700; font-size: 14px; box-shadow: 4px 4px 8px rgba(217, 210, 201, 0.6), -4px -4px 8px rgba(255, 255, 255, 0.9); }
     
-    /* ▼▼▼ 修正 (v1.3.4) 「色」の列を削除 ▼▼▼ */
     .items-grid { display: grid; grid-template-columns: 40px 1fr 120px 50px; gap: 8px; }
-    /* ▲▲▲ 修正 ▲▲▲ */
     
     .column-labels { padding: 8px 4px; background: transparent; margin-bottom: 8px; align-items: center; flex-shrink: 0; }
     .column-label { font-size: 12px; font-weight: 700; color: #7A6A62; text-align: center; display: flex; align-items: center; justify-content: center; gap: 4px; }
@@ -54,6 +52,11 @@
     .item-name-input:focus, .prob-input:focus { outline: none; }
     .prob-display { text-align: center; font-weight: 700; font-size: 16px; color: #6BAAC0; padding: 8px; }
     .prob-input { text-align: center; }
+    
+    /* ▼▼▼ 修正: 確率入力欄が空(auto)の場合のスタイル ▼▼▼ */
+    .prob-input:placeholder-shown { color: #6BAAC0; font-style: italic; font-weight: bold; }
+    /* ▲▲▲ 修正 ▲▲▲ */
+
     .delete-btn-wrapper { display: flex; justify-content: center; }
     .delete-btn { width: 40px; height: 40px; background: transparent; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s ease; }
     .delete-btn:hover { background: #F3EBE0; }
@@ -115,18 +118,18 @@
         <div class="left-panel">
             <div class="section-header">
                 <h2 class="section-title" id="items-header">📝 項目の設定</h2>
-                <div class="total-prob" id="total-prob-display">合計確率: 100%</div>
+                <div class="total-prob" id="total-prob-display">合計: 100%</div>
             </div>
             
             <div class="column-labels items-grid">
                 <div class="column-label"></div>
                 <div class="column-label text-left">項目名</div>
-                <div class="column-label">重み (Weight)<span class="tooltip" data-tooltip="「重み」の比率で確率が自動計算されます。重み10と重み20の項目がある場合、当選確率は 33.3% と 66.6% になります。">?</span></div>
+                <div class="column-label">確率 (%)<span class="tooltip" data-tooltip="数字を入れると固定されます。空欄にすると、残りの確率を他の空欄項目と自動的に分け合います。合計は必ず100%になります。">?</span></div>
                 <div class="column-label"></div>
             </div>
             
             <div class="items-container" id="items-list-container">
-                </div>
+            </div>
             <button id="add-item-btn" class="btn btn-primary" style="flex-shrink: 0; margin-top: 16px;">➕ 項目を追加</button>
         </div>
 
@@ -135,7 +138,6 @@
             <div class="card">
                 <h2>🎨 テーマ選択</h2>
                 <select id="theme-select" style="margin-top: 12px;">
-                    
                 </select>
             </div>
             <div class="card">
@@ -154,7 +156,7 @@
                 <button id="save-btn" class="btn btn-danger">設定を保存</button>
                 <div id="save-status"></div>
                 <button id="open-roulette-btn" class="btn btn-secondary">🎡 ルーレットを実行/更新</button>
-                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -165,7 +167,7 @@
     <div class="item-card items-grid" data-index="0">
         <div class="item-index">1</div>
         <input class="item-name-input" type="text" placeholder="項目名 (必須)">
-        <input type="number" placeholder="自動計算" class="prob-input prob-manual-input" min="0" step="1">
+        <input type="number" placeholder="Auto" class="prob-input prob-manual-input" min="0" max="100" step="0.1">
         <div class="delete-btn-wrapper">
             <button class="delete-btn">🗑️</button>
         </div>
