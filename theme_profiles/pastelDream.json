@@ -1,0 +1,75 @@
+{
+  "themeId": "pastelDream",
+  "name": "パステルドリーム",
+  "backgroundHtml": [
+    "<div class=\"gradient-circle circle1\"></div>",
+    "<div class=\"gradient-circle circle2\"></div>",
+    "<div class=\"gradient-circle circle3\"></div>",
+    "<div class=\"floating-shape shape1\">○</div>",
+    "<div class=\"floating-shape shape2\">△</div>",
+    "<div class=\"floating-shape shape3\">□</div>",
+    "<div class=\"floating-shape shape4\">◇</div>"
+  ],
+  "foregroundHtml": [
+    "<div class=\"pointer\"></div>",
+    "<div class=\"center-circle\">",
+    "  <div class=\"center-icon\">★</div>",
+    "</div>"
+  ],
+  "css": [
+    "body { overflow: hidden !important; background: linear-gradient(135deg, #FFF5F8 0%, #F0F8FF 50%, #FFFEF5 100%); }",
+    ".roulette-wrapper { width: 480px !important; height: 480px !important; position: absolute !important; top: 300px; left: 50%; transform: translate(-50%, -50%); background: linear-gradient(135deg, #FFFFFF, #FEFAFF); border-radius: 50%; padding: 15px; box-shadow: 0 20px 60px rgba(200, 180, 230, 0.25), 0 0 0 6px rgba(255, 255, 255, 0.9), 0 0 0 10px rgba(230, 210, 250, 0.3); margin: 0 !important; }",
+    "#roulette-svg-target { border-radius: 50%; }",
+    ".gradient-circle { position: absolute; border-radius: 50%; z-index: 3; opacity: 0.15; pointer-events: none; animation: circleFloat 15s ease-in-out infinite; }",
+    ".circle1 { width: 200px; height: 200px; background: radial-gradient(circle, #FFD4E5, transparent); top: 50px; left: 100px; animation-delay: 0s; }",
+    ".circle2 { width: 250px; height: 250px; background: radial-gradient(circle, #D4E5FF, transparent); bottom: 80px; right: 80px; animation-delay: -5s; }",
+    ".circle3 { width: 180px; height: 180px; background: radial-gradient(circle, #FFF4D4, transparent); top: 200px; right: 150px; animation-delay: -10s; }",
+    "@keyframes circleFloat { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(20px, -20px) scale(1.1); } }",
+    ".floating-shape { position: absolute; font-size: 32px; z-index: 4; opacity: 0.3; pointer-events: none; animation: shapeFloat 12s ease-in-out infinite; }",
+    ".shape1 { top: 100px; left: 200px; color: #FFB8D4; animation-delay: 0s; }",
+    ".shape2 { top: 180px; right: 150px; color: #B8D4FF; animation-delay: -3s; }",
+    ".shape3 { bottom: 150px; left: 150px; color: #FFE8B8; animation-delay: -6s; }",
+    ".shape4 { bottom: 120px; right: 200px; color: #D4B8FF; animation-delay: -9s; }",
+    "@keyframes shapeFloat { 0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.3; } 50% { transform: translateY(-25px) rotate(180deg); opacity: 0.6; } }",
+    ".pointer { position: absolute; top: 18px; left: 50%; transform: translateX(-50%); z-index: 25; }",
+    ".pointer::before { content: '▼'; font-size: 40px; color: #FF8EC7; display: block; filter: drop-shadow(0 4px 10px rgba(255, 142, 199, 0.5)) drop-shadow(0 0 20px rgba(255, 142, 199, 0.7)); animation: pointerPulse 2s ease-in-out infinite; }",
+    "@keyframes pointerPulse { 0%, 100% { transform: scale(1); filter: drop-shadow(0 4px 10px rgba(255, 142, 199, 0.5)) drop-shadow(0 0 20px rgba(255, 142, 199, 0.7)); } 50% { transform: scale(1.1); filter: drop-shadow(0 4px 10px rgba(255, 142, 199, 0.7)) drop-shadow(0 0 30px rgba(255, 142, 199, 1)); } }",
+    ".center-circle { position: absolute; top: 300px; left: 50%; transform: translate(-50%, -50%); width: 70px; height: 70px; background: radial-gradient(circle at 35% 35%, #FFFFFF, #FFF5FB); border-radius: 50%; border: 3px solid #FFB8D4; box-shadow: 0 8px 25px rgba(255, 184, 212, 0.35), inset 0 2px 10px rgba(255, 255, 255, 0.9); z-index: 30; display: flex; align-items: center; justify-content: center; }",
+    ".center-icon { font-size: 24px; color: #FF8EC7; animation: iconSpin 3s linear infinite; }",
+    "@keyframes iconSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }",
+    "#spinBtn { display: flex; justify-content: center; align-items: center; width: 220px; height: 65px; font-size: 20px; font-weight: 700; color: #FF6BAD; background: linear-gradient(135deg, #FFFFFF, #FFF8FC); border: 3px solid #FFB8D4; border-radius: 50px; cursor: pointer; box-shadow: 0 8px 25px rgba(255, 184, 212, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.9); transition: all 0.3s; letter-spacing: 3px; text-transform: uppercase; font-family: 'Arial', sans-serif; position: absolute; top: 570px; left: 50%; transform: translateX(-50%); }",
+    "#spinBtn::before { content: '♦'; position: absolute; left: 18px; color: #FFB8D4; font-size: 18px; animation: btnIconShine 2.5s ease-in-out infinite; }",
+    "#spinBtn::after { content: '♦'; position: absolute; right: 18px; color: #FFB8D4; font-size: 18px; animation: btnIconShine 2.5s ease-in-out infinite; }",
+    "@keyframes btnIconShine { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }",
+    "#spinBtn:hover { transform: translateX(-50%) translateY(-4px); box-shadow: 0 12px 35px rgba(255, 184, 212, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.9); background: linear-gradient(135deg, #FFFFFF, #FFE8F5); }",
+    "#spinBtn:active { transform: translateX(-50%) translateY(0); box-shadow: 0 4px 15px rgba(255, 184, 212, 0.3); }",
+    "#result { font-size: 46px; font-weight: bold; color: #FF6BAD; text-shadow: 0 0 30px rgba(255, 107, 173, 0.6), 0 3px 10px rgba(255, 107, 173, 0.4), 0 0 8px rgba(255, 255, 255, 1), 2px 2px 0 rgba(255, 255, 255, 0.9), -2px -2px 0 rgba(255, 255, 255, 0.9), 2px -2px 0 rgba(255, 255, 255, 0.9), -2px 2px 0 rgba(255, 255, 255, 0.9); font-family: 'Arial', sans-serif; position: absolute; top: 680px; width: 100%; text-align: center; letter-spacing: 4px; }",
+    "#legend-area { top: 570px !important; right: 20px !important; width: 160px !important; max-height: 150px !important; background: rgba(255, 255, 255, 0.92) !important; border: 3px solid #FFB8D4 !important; border-radius: 15px !important; color: #FF6BAD !important; padding: 12px !important; box-shadow: 0 6px 20px rgba(255, 184, 212, 0.3) !important; }"
+  ],
+  "segmentCss": {
+    "path": {
+      "stroke": "#FFFFFF",
+      "stroke-width": 4,
+      "fill-type": "solid"
+    },
+    "text": {
+      "font": "bold 22px Arial",
+      "fill": "#4A4A4A",
+      "filter": "drop-shadow(0px 1px 2px rgba(255, 255, 255, 0.8)) drop-shadow(0px -1px 2px rgba(255, 255, 255, 0.8)) drop-shadow(1px 0px 2px rgba(255, 255, 255, 0.8)) drop-shadow(-1px 0px 2px rgba(255, 255, 255, 0.8))"
+    }
+  },
+  "colorProfile": {
+    "type": "fixed-list",
+    "colors": [
+      "#FFB8D4",
+      "#B8D4FF",
+      "#FFE8B8",
+      "#D4B8FF",
+      "#B8FFD4",
+      "#FFD4B8",
+      "#D4CFFF",
+      "#B8F0FF"
+    ]
+  },
+  "svgViewBox": "0 0 480 480"
+}

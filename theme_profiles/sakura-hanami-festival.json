@@ -1,0 +1,60 @@
+{
+  "themeId": "sakura-hanami-festival",
+  "name": "桜花絢爛",
+  "backgroundHtml": [
+    "<div class='sky-gradient'></div>",
+    "<div class='falling-petals'></div>",
+    "<div class='wind-effect'></div>",
+    "<div class='lantern lantern-left'></div>",
+    "<div class='lantern lantern-right'></div>"
+  ],
+  "foregroundHtml": [
+    "<div class='cherry-branch branch-left'></div>",
+    "<div class='cherry-branch branch-right'></div>",
+    "<div class='pointer'></div>",
+    "<div class='center-obj'></div>"
+  ],
+  "css": [
+    "body { overflow: hidden !important; }",
+    ".roulette-wrapper { width: 480px !important; height: 480px !important; position: absolute !important; top: 300px; left: 50%; transform: translate(-50%, -50%); filter: drop-shadow(0 8px 20px rgba(255, 182, 193, 0.4)); margin: 0 !important; }",
+    "#roulette-svg-target { background: radial-gradient(circle, #fff8f0, #ffe8e8); border-radius: 50%; border: 5px solid #d4a5a5; box-shadow: 0 0 40px rgba(255, 182, 193, 0.6), inset 0 0 60px rgba(255, 192, 203, 0.3); }",
+    ".sky-gradient { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(180deg, #87ceeb 0%, #ffc0cb 50%, #ffb6c1 100%); opacity: 0.7; z-index: -10; }",
+    ".falling-petals { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: radial-gradient(ellipse 8px 12px at 15% 20%, #ffb7c5, transparent), radial-gradient(ellipse 10px 15px at 65% 10%, #ffc0cb, transparent); background-size: 100% 100%; animation: petalFall 20s linear infinite; z-index: -5; pointer-events: none; }",
+    ".wind-effect { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent); animation: windSweep 8s ease-in-out infinite; pointer-events: none; z-index: -2; }",
+    "@keyframes petalFall { 0% { transform: translateY(-100%) rotate(0deg); opacity: 0; } 100% { transform: translateY(100%) rotate(360deg); opacity: 0; } }",
+    "@keyframes windSweep { 0%, 100% { transform: translateX(-100%); } 50% { transform: translateX(100%); } }",
+    ".lantern { position: fixed; width: 50px; height: 70px; background: linear-gradient(180deg, #ff6b6b, #ee5a6f); border-radius: 10px; border: 3px solid #8b4513; box-shadow: 0 0 30px rgba(255, 107, 107, 0.8); z-index: 5; }",
+    ".lantern::before { content: ''; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 35px; height: 8px; background: #8b4513; border-radius: 50%; }",
+    ".lantern::after { content: ''; position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); width: 2px; height: 15px; background: #8b4513; }",
+    ".lantern-left { top: 80px; left: 30px; animation: lanternSwing 4s ease-in-out infinite; }",
+    ".lantern-right { top: 110px; right: 30px; animation: lanternSwing 4s ease-in-out infinite 2s; }",
+    "@keyframes lanternSwing { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }",
+    ".cherry-branch { position: fixed; width: 180px; height: 130px; pointer-events: none; z-index: 25; }",
+    ".cherry-branch::before { content: ''; position: absolute; width: 100%; height: 4px; background: #8b4513; top: 50%; transform: translateY(-50%) rotate(-15deg); border-radius: 2px; }",
+    ".branch-left { top: 20px; left: -40px; background: radial-gradient(circle, #ffb7c5 8px, transparent 8px); transform: rotate(-30deg); }",
+    ".branch-right { top: 20px; right: -40px; background: radial-gradient(circle, #ffb7c5 8px, transparent 8px); transform: scaleX(-1) rotate(-30deg); }",
+    ".center-obj { position: absolute; top: 300px; left: 50%; transform: translate(-50%, -50%); width: 100px; height: 100px; background: radial-gradient(circle, #ffffff, #ffb6c1); border-radius: 50%; border: 6px solid #d4a5a5; box-shadow: 0 0 40px rgba(255, 182, 193, 0.8); display: flex; justify-content: center; align-items: center; z-index: 30; animation: bloomPulse 3s ease-in-out infinite; }",
+    ".center-obj::before { content: '🌸'; font-size: 40px; animation: centerBloom 2s ease-in-out infinite; }",
+    "@keyframes bloomPulse { 0%, 100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.05); } }",
+    "@keyframes centerBloom { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }",
+    ".pointer { position: absolute; top: 45px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-top: 40px solid #ff69b4; filter: drop-shadow(0 4px 8px rgba(255, 105, 180, 0.6)); z-index: 40; }",
+    ".pointer::after { content: '🌸'; position: absolute; top: -35px; left: -10px; font-size: 20px; animation: petalRotate 3s linear infinite; }",
+    "@keyframes petalRotate { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(180deg); } }",
+    "#spinBtn { position: absolute; top: 570px; padding: 12px 40px; font-size: 24px; font-weight: bold; color: #8b4513; background: linear-gradient(135deg, #ffc0cb, #ffb6c1, #ff69b4); border: 4px solid #d4a5a5; border-radius: 60px; box-shadow: 0 8px 20px rgba(255, 105, 180, 0.5); transition: all 0.3s; display: flex; justify-content: center; align-items: center; z-index: 100; min-width: 180px; }",
+    "#spinBtn::before { content: '🌸 '; }",
+    "#spinBtn::after { content: ' 🌸'; }",
+    "#spinBtn:hover { transform: scale(1.05); }",
+    "#spinBtn:active { transform: scale(0.95); }",
+    "#result { position: absolute; top: 650px; font-size: 32px; font-weight: bold; color: #ff1493; text-shadow: 3px 3px 6px rgba(255, 182, 193, 0.8); font-family: 'ヒラギノ明朝 ProN', serif; width: 100%; text-align: center; z-index: 100; }",
+    "#legend-area { top: 570px !important; right: 10px !important; width: 160px !important; max-height: 150px !important; background: rgba(255, 250, 250, 0.9) !important; border: 2px solid #ffb6c1 !important; }"
+  ],
+  "segmentCss": {
+    "path": { "stroke": "#d4a5a5", "stroke-width": 2 },
+    "text": { "font": "bold 20px 'ヒラギノ角ゴ ProN', sans-serif", "fill": "#8b4513", "text-shadow": "1px 1px 3px rgba(255, 255, 255, 0.8)" }
+  },
+  "colorProfile": {
+    "type": "fixed-list",
+    "colors": [ "#ffb6c1", "#ffc0cb", "#ffb7c5", "#ffd1dc", "#ffcce5", "#ffccdd", "#ffb3d9", "#ffc2e0", "#ffa6c9", "#ffb8d1", "#ffc5d8", "#ffaac5" ]
+  },
+  "svgViewBox": "0 0 480 480"
+}

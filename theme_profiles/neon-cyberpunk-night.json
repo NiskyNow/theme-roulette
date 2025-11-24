@@ -1,0 +1,81 @@
+{
+  "themeId": "neon-cyberpunk-night",
+  "name": "ネオン・サイバーパンク",
+  "backgroundHtml": [
+    "<div class='cyber-grid'></div>",
+    "<div class='neon-glow-bg'></div>",
+    "<div class='floating-particles'></div>"
+  ],
+  "foregroundHtml": [
+    "<div class='hologram-ring'></div>",
+    "<div class='scan-line'></div>",
+    "<div class='pointer'></div>",
+    "<div class='center-obj'></div>"
+  ],
+  "css": [
+    "/* Base */",
+    "body { overflow: hidden !important; }",
+    ".roulette-wrapper { width: 480px !important; height: 480px !important; position: absolute !important; top: 300px; left: 50%; transform: translate(-50%, -50%); filter: drop-shadow(0 0 40px rgba(0, 255, 255, 0.6)); margin: 0 !important; }",
+    "#roulette-svg-target { background: radial-gradient(circle, rgba(10, 10, 30, 0.95), rgba(5, 5, 15, 1)); border-radius: 50%; border: 3px solid #00ffff; box-shadow: 0 0 30px #00ffff, inset 0 0 50px rgba(0, 255, 255, 0.2); transition: transform 0.1s; }",
+    "",
+    "/* --- Background Elements --- */",
+    ".cyber-grid { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px); background-size: 50px 50px; animation: gridScroll 20s linear infinite; pointer-events: none; }",
+    "@keyframes gridScroll { 0% { transform: translate(0, 0); } 100% { transform: translate(50px, 50px); } }",
+    ".neon-glow-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 30% 40%, rgba(255, 0, 255, 0.15), transparent 50%), radial-gradient(circle at 70% 60%, rgba(0, 255, 255, 0.15), transparent 50%); animation: glowPulse 4s ease-in-out infinite; pointer-events: none; }",
+    "@keyframes glowPulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }",
+    ".floating-particles { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: radial-gradient(2px 2px at 20% 30%, #00ffff, transparent), radial-gradient(2px 2px at 60% 70%, #ff00ff, transparent), radial-gradient(1px 1px at 50% 50%, #00ff00, transparent), radial-gradient(2px 2px at 80% 10%, #ffff00, transparent), radial-gradient(1px 1px at 90% 60%, #00ffff, transparent); background-size: 200% 200%; background-position: 0% 0%; animation: particleFloat 15s ease-in-out infinite; pointer-events: none; }",
+    "@keyframes particleFloat { 0%, 100% { background-position: 0% 0%; opacity: 0.4; } 50% { background-position: 100% 100%; opacity: 0.8; } }",
+    "",
+    "/* --- Foreground Elements (Fixed Position) --- */",
+    ".hologram-ring { position: absolute; top: 300px; left: 50%; transform: translate(-50%, -50%); width: 500px; height: 500px; border: 2px solid rgba(0, 255, 255, 0.3); border-radius: 50%; animation: holoRing 3s linear infinite; pointer-events: none; }",
+    "@keyframes holoRing { 0% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; } 50% { transform: translate(-50%, -50%) scale(1.05); opacity: 0.8; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; } }",
+    ".scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, transparent, #00ffff, transparent); animation: scanMove 2s linear infinite; opacity: 0.7; pointer-events: none; }",
+    "@keyframes scanMove { 0% { top: 0%; } 100% { top: 100%; } }",
+    "",
+    "/* Pointer: Fixed Top 80px */",
+    ".pointer { position: absolute; top: 60px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-top: 40px solid #ff00ff; filter: drop-shadow(0 0 15px #ff00ff); animation: pointerGlow 1s ease-in-out infinite; pointer-events: none; z-index: 100; }",
+    "@keyframes pointerGlow { 0%, 100% { filter: drop-shadow(0 0 15px #ff00ff); } 50% { filter: drop-shadow(0 0 30px #ff00ff); } }",
+    "",
+    ".center-obj { position: absolute; top: 300px; left: 50%; transform: translate(-50%, -50%); width: 90px; height: 90px; background: radial-gradient(circle, #ff00ff, #8800ff); border-radius: 50%; border: 4px solid #00ffff; box-shadow: 0 0 40px #ff00ff, inset 0 0 30px rgba(0, 255, 255, 0.5); animation: centerPulse 2s ease-in-out infinite; pointer-events: none; }",
+    "@keyframes centerPulse { 0%, 100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.1); } }",
+    "",
+    "/* --- UI Elements (Fixed Position) --- */",
+    "#spinBtn { position: absolute; top: 570px; left: 50%; transform: translateX(-50%); padding: 18px 50px; font-size: 28px; font-weight: bold; color: #000; background: linear-gradient(135deg, #00ffff, #ff00ff); border: 3px solid #00ffff; border-radius: 50px; cursor: pointer; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8); box-shadow: 0 0 30px #00ffff, 0 0 50px #ff00ff; transition: all 0.3s; animation: btnPulse 2s ease-in-out infinite; z-index: 100; width: 240px; height: 70px; display: flex; justify-content: center; align-items: center; }",
+    "@keyframes btnPulse { 0%, 100% { box-shadow: 0 0 30px #00ffff, 0 0 50px #ff00ff; } 50% { box-shadow: 0 0 50px #00ffff, 0 0 80px #ff00ff; } }",
+    "#spinBtn:hover { background: linear-gradient(135deg, #ff00ff, #00ffff); transform: translateX(-50%) scale(1.1); box-shadow: 0 0 60px #ff00ff, 0 0 100px #00ffff; }",
+    "#spinBtn:active { transform: translateX(-50%) scale(0.95); }",
+    "",
+    "#result { position: absolute; top: 650px; left: 50%; transform: translateX(-50%); font-size: 32px; font-weight: bold; color: #00ffff; text-shadow: 0 0 20px #00ffff, 0 0 40px #ff00ff; animation: resultFlicker 0.5s ease-in-out infinite; width: 100%; text-align: center; z-index: 100; }",
+    "@keyframes resultFlicker { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }",
+    "#legend-area { top: 570px !important; right: 20px !important; width: 160px !important; max-height: 150px !important; background: rgba(10, 10, 30, 0.9) !important; border: 2px solid #00ffff !important; color: #00ffff !important; }"
+  ],
+  "segmentCss": {
+    "path": {
+      "stroke": "#00ffff",
+      "stroke-width": 2
+    },
+    "text": {
+      "font": "bold 20px 'Courier New', monospace",
+      "fill": "#ffffff",
+      "text-shadow": "0 0 10px #00ffff, 0 0 20px #ff00ff"
+    }
+  },
+  "colorProfile": {
+    "type": "fixed-list",
+    "colors": [
+      "#0a0a1e",
+      "#1a0a2e",
+      "#2d1b4e",
+      "#16213e",
+      "#0f3460",
+      "#1f1f3a",
+      "#2a1a4a",
+      "#1e1e3f",
+      "#0d1b2a",
+      "#1b263b",
+      "#0f172a",
+      "#1e293b"
+    ]
+  },
+  "svgViewBox": "0 0 480 480"
+}
