@@ -1,9 +1,14 @@
 // main.js (v2.3 - 起動時ルーレット & 幅広版)
 
-const { app, BrowserWindow, ipcMain, Menu } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu, dialog } = require('electron'); // ▼ dialogを追加
 const path = require('path');
 const Store = require('electron-store');
 const fs = require('fs');
+const { autoUpdater } = require('electron-updater'); // ▼ 追加
+
+// ▼▼▼ 追加: ログが出るように設定（開発中の確認用） ▼▼▼
+autoUpdater.logger = require("electron-log");
+autoUpdater.logger.transports.file.level = "info";
 
 const store = new Store.default({
   defaults: {
@@ -122,6 +127,14 @@ async function createRouletteWindow(profile) {
 
 // --- 4. アプリ起動時の動作 (修正) ---
 app.whenReady().then(() => {
+  // ▼▼▼ 追加: アップデート確認の実行 ▼▼▼
+  // 開発環境(dev)ではエラーになることがあるので、本番ビルド時のみ動くようにするガード
+  if (app.isPackaged) {
+    autoUpdater.checkForUpdatesAndNotify();
+  }
+  // ▲▲▲ 追加 ▲▲▲
+
+
   // ▼▼▼ 修正 (v2.3) 起動時にルーレットを開く ▼▼▼
   const appData = store.get('appData');
   
@@ -156,6 +169,37 @@ app.on('window-all-closed', () => {
     app.quit();
   }
 });
+
+// ▼▼▼ 追加: アップデート関連のイベントリスナー ▼▼▼
+
+// 1. アップデートが見つかったとき
+autoUpdater.on('update-available', () => {
+  // ここでユーザーに「ダウンロード中...」と伝えたりできますが、
+  // checkForUpdatesAndNotify() はダウンロード完了まで自動で進めます。
+  console.log('Update available.');
+});
+
+// 2. アップデートのダウンロードが完了したとき
+autoUpdater.on('update-downloaded', (info) => {
+  // ユーザーに再起動を促すダイアログを表示
+  dialog.showMessageBox({
+    type: 'info',
+    title: 'アップデートあり',
+    message: `新しいバージョン (${info.version}) がダウンロードされました。\n再起動して適用しますか？`,
+    buttons: ['はい', 'いいえ']
+  }).then((result) => {
+    if (result.response === 0) {
+      // 「はい」が押されたら終了してインストール
+      autoUpdater.quitAndInstall();
+    }
+  });
+});
+
+// 3. エラーが起きたとき
+autoUpdater.on('error', (err) => {
+  console.error('Update error:', err);
+});
+// ▲▲▲ 追加ここまで ▲▲▲
 
 // --- 5. IPCハンドラ ---
 

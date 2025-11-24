@@ -1,8 +1,12 @@
 {
-  "name": "new_application",
-  "version": "1.0.0",
+  "name": "streamer_roulette",
+  "version": "1.0.3",
   "description": "",
   "main": "main.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NiskyNow/theme-roulette.git"
+  },
   "dependencies": {
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
@@ -21,7 +25,9 @@
     "define-properties": "^1.2.1",
     "detect-node": "^2.1.0",
     "dot-prop": "^10.1.0",
+    "electron-log": "^5.4.3",
     "electron-store": "^11.0.2",
+    "electron-updater": "^6.6.2",
     "end-of-stream": "^1.4.5",
     "env-paths": "^2.2.1",
     "es-define-property": "^1.0.1",
@@ -89,6 +95,13 @@
     "start": "electron .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "publish": [
+    {
+      "provider": "github",
+      "owner": "NiskyNow",
+      "repo": "theme-roulette"
+    }
+  ],
   "keywords": [],
   "author": "",
   "license": "ISC",

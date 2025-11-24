@@ -12,10 +12,14 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
 <style>
+    /* ... (既存のスタイルは維持しつつ、以下を修正・追加) ... */
+    
     .swal2-popup { font-family: 'Nunito', 'M PLUS Rounded 1c', sans-serif; }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     input, button, select, textarea { font-family: inherit; }
     html, body { height: 100%; font-family: 'Nunito', 'M PLUS Rounded 1c', sans-serif; background: #F9F5F0; color: #5A4A42; overflow: hidden; }
+    
+    /* ... (省略: ヘッダーやパネルのスタイルは変更なし) ... */
     .app-container { height: 100%; display: flex; flex-direction: column; }
     .header { background: #F9F5F0; padding: 16px 24px; box-shadow: 4px 4px 8px rgba(217, 210, 201, 0.6), -4px -4px 8px rgba(255, 255, 255, 0.9); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; position: relative; z-index: 10; }
     .header-title { font-size: 22px; font-weight: 800; background: linear-gradient(135deg, #5A4A42 0%, #7A6A62 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.5px; }
@@ -38,24 +42,89 @@
     .section-title { font-size: 20px; font-weight: 700; color: #5A4A42; }
     .total-prob { padding: 10px 16px; background: #A1D8D4; color: white; border-radius: 10px; font-weight: 700; font-size: 14px; box-shadow: 4px 4px 8px rgba(217, 210, 201, 0.6), -4px -4px 8px rgba(255, 255, 255, 0.9); }
     
-    .items-grid { display: grid; grid-template-columns: 40px 1fr 120px 50px; gap: 8px; }
-    
-    /* ▼▼▼ 修正: ヘッダーのパディングをカード(12px)と合わせる ▼▼▼ */
-    .column-labels { padding: 8px 12px; background: transparent; margin-bottom: 8px; align-items: center; flex-shrink: 0; }
-    /* ▲▲▲ 修正 ▲▲▲ */
+    /* ▼▼▼ 修正1: グリッド定義 (列幅の設定) ▼▼▼ */
+    /* 全ての列の中身を「中央揃え (justify-items: center)」にします */
+    .items-grid { 
+        display: grid; 
+        /* 横書き(英字)列は 60px */
+        grid-template-columns: 40px 1fr 120px 60px 50px; 
+        gap: 8px;
+        align-items: center;      /* 縦方向の中央揃え */
+        justify-items: center;    /* 横方向の中央揃え（これでズレが目立たなくなります） */
+    }
 
-    .column-label { font-size: 12px; font-weight: 700; color: #7A6A62; text-align: center; display: flex; align-items: center; justify-content: center; gap: 4px; }
+    /* 項目名の列だけは「左揃え」に戻す */
+    .items-grid > .text-middle, 
+    .items-grid > .item-name-input {
+        justify-self: stretch; /* 幅いっぱいに広げる */
+        text-align: center;
+    }
+
+    /* ▼▼▼ 修正2: ヘッダーの余白設定 (計算しなおしました) ▼▼▼ */
+    /* 下のリストの条件（カード内余白12px + コンテナ余白8px + スクロールバー約17px）に合わせます */
+    .column-labels { 
+        /* 右余白を 37px に設定すると、Windowsの標準的なスクロールバー幅と合致します */
+        padding: 8px 32px 8px 12px;
+        background: transparent; 
+        margin-bottom: 8px; 
+        flex-shrink: 0; 
+        min-height: 44px;
+        /* align-items: flex-end; ← これは削除（gridのalign-itemsを使うため） */
+    }
     
-    /* ▼▼▼ 修正: 項目名ラベルの左余白を入力欄の文字開始位置(12px)に合わせる ▼▼▼ */
+    .column-label { 
+        font-size: 12px; 
+        font-weight: 700; 
+        color: #7A6A62; 
+        text-align: center; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        gap: 4px; 
+        padding-bottom: 4px; /* 下に少し余白 */
+    }
+    
+    /* 縦積み用 (英字列など) */
+    .column-label.stacked {
+        flex-direction: column;
+        justify-content: flex-end;
+        gap: 2px;
+        line-height: 1.1;
+        padding-bottom: 0; /* チェックボックスがあるので調整 */
+    }
+
+    /* 「改行可」を目立たせるバッジ */
+    .badge-note {
+        font-size: 10px;
+        background: #E8DFD6;
+        color: #7A6A62;
+        padding: 3px 6px;
+        border-radius: 6px;
+        margin-left: 6px;
+        border: 1px solid #D9D2C9;
+        display: inline-block;
+        transform: translateY(-1px); /* 微調整 */
+    }
+    /* ▲▲▲ 変更 ▲▲▲ */
+
     .column-label.text-left { justify-content: flex-start; padding-left: 12px; }
-    /* ▲▲▲ 修正 ▲▲▲ */
 
-    .items-container { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; flex: 1; padding-right: 8px; }
+    /* ▼▼▼ 修正3: スクロールバーを常に表示して「ガタつき」をなくす ▼▼▼ */
+    .items-container { 
+        display: flex; 
+        flex-direction: column; 
+        gap: 8px; 
+        
+        /* 項目が少なくても常にスクロールバーの領域を確保する（これでズレなくなります） */
+        overflow-y: scroll; 
+        
+        flex: 1; 
+        padding-right: 8px; 
+    }
     .item-card { background: #F9F5F0; border: none; border-radius: 12px; padding: 12px; align-items: center; transition: all 0.3s ease; box-shadow: 6px 6px 12px rgba(217, 210, 201, 0.6), -6px -6px 12px rgba(255, 255, 255, 0.9); }
     .item-card:hover { box-shadow: 8px 8px 16px rgba(217, 210, 201, 0.6), -8px -8px 16px rgba(255, 255, 255, 0.9); transform: translateY(-1px); }
     .item-index { width: 36px; height: 36px; background: #F3EBE0; color: #7A6A62; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; box-shadow: inset 2px 2px 4px rgba(217, 210, 201, 0.7), inset -2px -2px 4px rgba(255, 255, 255, 0.9); }
     
-    /* input と textarea 両対応のスタイル */
     .item-name-input, .prob-input { 
         padding: 10px 12px; 
         border: none; 
@@ -68,13 +137,7 @@
         box-shadow: inset 3px 3px 6px rgba(217, 210, 201, 0.7), inset -3px -3px 6px rgba(255, 255, 255, 0.9); 
         font-family: inherit;
     }
-    /* textarea専用設定 */
-    textarea.item-name-input {
-        resize: vertical;
-        min-height: 44px;
-        line-height: 1.4;
-        overflow: hidden;
-    }
+    textarea.item-name-input { resize: vertical; min-height: 44px; line-height: 1.4; overflow: hidden; }
 
     .item-name-input:focus, .prob-input:focus { outline: none; }
     .prob-display { text-align: center; font-weight: 700; font-size: 16px; color: #6BAAC0; padding: 8px; }
@@ -110,18 +173,7 @@
     #save-status.success { background: #d4edda; color: #155724; display: block; }
     #save-status.error { background: #f8d7da; color: #721c24; display: block; }
     
-    #theme-select {
-        width: 100%;
-        padding: 12px;
-        border: none;
-        border-radius: 10px;
-        font-size: 14px;
-        font-weight: 500;
-        background: #F9F5F0;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: inset 3px 3px 6px rgba(217, 210, 201, 0.7), inset -3px -3px 6px rgba(255, 255, 255, 0.9);
-    }
+    #theme-select { width: 100%; padding: 12px; border: none; border-radius: 10px; font-size: 14px; font-weight: 500; background: #F9F5F0; cursor: pointer; transition: all 0.3s ease; box-shadow: inset 3px 3px 6px rgba(217, 210, 201, 0.7), inset -3px -3px 6px rgba(255, 255, 255, 0.9); }
 </style>
 </head>
 <body>
@@ -147,8 +199,17 @@
             
             <div class="column-labels items-grid">
                 <div class="column-label"></div>
-                <div class="column-label text-left">項目名(改行可)</div>
+                <div class="column-label text-left">
+                    項目名 <span class="badge-note">改行可</span>
+                </div>
                 <div class="column-label">確率 (%)<span class="tooltip" data-tooltip="数字を入れると固定されます。空欄にすると、残りの確率を他の空欄項目と自動的に分け合います。合計は必ず100%になります。">?</span></div>
+                
+                <div class="column-label stacked">
+                    <span>英字</span>
+                    <label class="checkbox-label" style="padding:0; min-height:auto;">
+                        <input type="checkbox" id="select-all-horizontal">
+                    </label>
+                </div>
                 <div class="column-label"></div>
             </div>
             
@@ -158,11 +219,9 @@
         </div>
 
         <div class="right-panel">
-            
             <div class="card">
                 <h2>🎨 テーマ選択</h2>
-                <select id="theme-select" style="margin-top: 12px;">
-                </select>
+                <select id="theme-select" style="margin-top: 12px;"></select>
             </div>
             <div class="card">
                 <h2>⚙️ その他設定</h2>
@@ -192,6 +251,12 @@
         <div class="item-index">1</div>
         <textarea class="item-name-input" placeholder="項目名 (必須)" rows="1"></textarea>
         <input type="number" placeholder="Auto" class="prob-input prob-manual-input" min="0" max="100" step="0.1">
+        
+        <div style="display:flex; align-items:center; justify-content:center;">
+            <label class="checkbox-label" style="padding:0;">
+                <input type="checkbox" class="horizontal-input">
+            </label>
+        </div>
         <div class="delete-btn-wrapper">
             <button class="delete-btn">🗑️</button>
         </div>

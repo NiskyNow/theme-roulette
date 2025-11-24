@@ -29,6 +29,7 @@ window.onload = async () => {
     dom.saveStatus = document.getElementById('save-status');
     dom.fakeEnabled = document.getElementById('fake-enabled');
     dom.themeSelect = document.getElementById('theme-select'); 
+    dom.selectAllHorizontal = document.getElementById('select-all-horizontal'); // ▼追加
 
     setupEventListeners();
     setupIPCListeners();
@@ -81,6 +82,19 @@ function setupEventListeners() {
         }
     });
 
+    // ▼追加: 全選択チェックボックスのイベント
+    dom.selectAllHorizontal.addEventListener('change', (e) => {
+        const isChecked = e.target.checked;
+        const profile = state.currentProfile;
+        if (!profile) return;
+
+        // 全ての項目の isHorizontal を書き換え
+        profile.items.forEach(item => {
+            item.isHorizontal = isChecked;
+        });
+        render(); // 再描画
+    });
+
     dom.itemsContainer.addEventListener('change', (e) => {
         const target = e.target;
         const itemCard = target.closest('.item-card');
@@ -93,6 +107,13 @@ function setupEventListeners() {
             // ▼▼▼ 修正: 空欄ならAuto、数値ならFixedとして処理 ▼▼▼
             actions.updateItem(index, 'weight', target.value);
             // ▲▲▲ 修正 ▲▲▲
+        } else if (target.classList.contains('horizontal-input')) {
+            // ▼追加: 個別のチェックボックス変更イベント
+            actions.updateItem(index, 'isHorizontal', target.checked);
+            
+            // 全選択ボックスの状態を整合させる（すべてチェックなら全選択もON、ひとつでもOFFならOFF）
+            const allChecked = state.currentProfile.items.every(i => i.isHorizontal);
+            dom.selectAllHorizontal.checked = allChecked;
         }
     });
 
@@ -120,7 +141,7 @@ function setupIPCListeners() {
             state.appData.profiles = [{
                 id: newId,
                 name: "デフォルト",
-                items: [{ "name": "新規項目", "weight": null, "isAuto": true }], // 初期項目はAuto
+                items: [{ "name": "新規項目", "weight": null, "isAuto": true, "isHorizontal": false }], // 初期項目はAuto
                 settings: { theme: "arcade", fakeEnabled: false, transparentBg: true }
             }];
             state.appData.activeProfileId = newId;
@@ -141,6 +162,9 @@ function setupIPCListeners() {
                     // weightがnull/0/空文字ならAutoとみなす、それ以外はFixed
                     item.isAuto = (item.weight === null || item.weight === 0 || item.weight === "");
                 }
+                if (item.isHorizontal === undefined) {
+                    item.isHorizontal = false;
+                }
             });
         }
         // ▲▲▲ 修正 ▲▲▲
@@ -159,7 +183,7 @@ const actions = {
         const profile = state.currentProfile;
         if (!profile) return;
         // ▼▼▼ 修正: 新規項目は「Auto (空欄)」で追加 ▼▼▼
-        profile.items.push({ name: "新規項目", weight: null, isAuto: true });
+        profile.items.push({ name: "新規項目", weight: null, isAuto: true, isHorizontal: false });
         // ▲▲▲ 修正 ▲▲▲
     },
     
@@ -223,7 +247,7 @@ const actions = {
         }).then((result) => {
             if (result.isConfirmed) {
                 if (profile.items.length <= 1) {
-                    profile.items[index] = { name: "新規項目", weight: null, isAuto: true };
+                    profile.items[index] = { name: "新規項目", weight: null, isAuto: true, isHorizontal: false };
                 } else {
                     profile.items.splice(index, 1);
                 }
@@ -245,7 +269,7 @@ const actions = {
             const newId = `profile-${Date.now()}`;
             state.appData.profiles.push({
                 id: newId, name: newName, 
-                items: [{ "name": "新規項目", "weight": null, "isAuto": true }],
+                items: [{ "name": "新規項目", "weight": null, "isAuto": true, isHorizontal: false }],
                 settings: { theme: "arcade", fakeEnabled: false, transparentBg: true }
             });
             actions.loadProfile(newId);
@@ -367,6 +391,10 @@ function renderProfileSelector() {
 
 function renderItemsList(items = []) {
     dom.itemsContainer.innerHTML = '';
+    // ▼追加: 全選択チェックボックスの表示状態を更新
+    const allChecked = items.length > 0 && items.every(i => i.isHorizontal);
+    if (dom.selectAllHorizontal) dom.selectAllHorizontal.checked = allChecked;
+
     items.forEach((item, index) => {
         const itemRow = dom.itemTemplate.content.cloneNode(true);
         const itemCard = itemRow.querySelector('.item-card');
@@ -389,6 +417,10 @@ function renderItemsList(items = []) {
         }
         // ▲▲▲ 修正 ▲▲▲
         
+        // ▼追加: 横書きチェックボックスの状態反映
+        const horizInput = itemRow.querySelector('.horizontal-input');
+        horizInput.checked = item.isHorizontal || false;
+
         itemRow.querySelector('.delete-btn-wrapper').style.display = 'flex';
         dom.itemsContainer.appendChild(itemRow);
     });

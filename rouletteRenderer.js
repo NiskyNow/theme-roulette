@@ -204,13 +204,13 @@ function initializeApp() {
   }
 
   /**
-   * (v2.6.0) テキスト描画：縦書き復活 & 自動縮小対応版
+   * (v2.7.0) テキスト描画：横書き・縦書き分岐対応版
    */
   function drawSegmentTexts(cx, cy, r, textCss, profile) {
       const svgNS = 'http://www.w3.org/2000/svg';
       const itemsToShowInLegend = []; 
 
-      // 1. 基準フォントサイズの取得 (デフォルト20px)
+      // 基準フォントサイズの取得
       let baseFontSize = 20;
       if (textCss) {
           if (textCss['font-size']) baseFontSize = parseFloat(textCss['font-size']);
@@ -223,7 +223,6 @@ function initializeApp() {
       processedItems.forEach(item => {
           let textContent = item.name;
           
-          // 狭いセグメントは番号表示
           if (item.angle < 15) {
               itemsToShowInLegend.push(item);
               textContent = (item.index + 1).toString();
@@ -231,18 +230,16 @@ function initializeApp() {
 
           const lines = (textContent || '').split('\n');
           
-          // --- 2. 自動サイズ調整ロジック (縦書き用) ---
+          // --- 自動サイズ調整ロジック ---
+          // 縦書きでも横書きでも、「半径方向の長さ」に収める必要があるのは同じです。
+          // 横書きの場合、文字を回転させるので「文字の幅の合計」が「半径方向の高さ」になります。
+          // したがって、計算ロジック自体は変更不要です。
           
-          // セグメント内で文字に使ってよい長さ（半径の80%を上限とする）
-          // 外側の10%と中心側の10%を余白として残すイメージ
           const availableHeight = r * 0.8;
-          
-          // 最も長い行の文字数をカウント
           let maxChars = 0;
           lines.forEach(line => {
               let len = 0;
               for (let i = 0; i < line.length; i++) {
-                  // 全角1、半角0.6程度で計算
                   len += (line.charCodeAt(i) < 128) ? 0.6 : 1;
               }
               if (len > maxChars) maxChars = len;
@@ -250,44 +247,52 @@ function initializeApp() {
 
           // 計算上の必要高さ = 文字数 * フォントサイズ
           let neededHeight = maxChars * baseFontSize;
-          
-          // 縮小率の計算 (必要高さが利用可能高さを超えていたら縮小)
           let scale = 1.0;
           if (neededHeight > availableHeight) {
               scale = availableHeight / neededHeight;
           }
-          
-          // 行数が多い場合も少し縮小 (横幅対策)
           if (lines.length > 1) {
-              // 3行以上ならさらに少し小さくする
               if (lines.length > 2) scale *= 0.9;
           }
 
-          // 最終フォントサイズ (最小サイズは 10px で底打ちさせる)
           let finalFontSize = Math.max(10, baseFontSize * scale);
-          
-          // 行間 (フォントサイズの1.1倍)
           let lineHeight = finalFontSize * 1.1;
 
-
-          // --- 3. 描画 ---
+          // --- 描画 ---
           
           const centerAngleRad = (item.centerAngle - 90) * Math.PI / 180;
-          // テキストの配置中心: 半径の 60% の位置 (少し内側寄りにすることで外枠との被りを防ぐ)
+          
+          // テキスト配置中心（半径の60%地点）
           const textRadius = r * 0.60; 
           const tx = cx + textRadius * Math.cos(centerAngleRad);
           const ty = cy + textRadius * Math.sin(centerAngleRad);
 
           const text = document.createElementNS(svgNS, 'text');
           
-          // 縦書き設定
-          text.style.writingMode = 'vertical-rl';
-          text.style.textOrientation = 'upright';
-          text.style.glyphOrientationVertical = '0';
+          // ▼▼▼ 修正: 横書き・縦書きの分岐 ▼▼▼
+        // ▼▼▼ 修正: 余計な反転処理を削除し、全て統一する ▼▼▼
+        if (item.isHorizontal) {
+            // 横書きモード (English)
+            text.style.writingMode = 'horizontal-tb'; 
+            
+            // ▼▼▼ 修正: +90 を -90 に変更します ▼▼▼
+            // これで「中心から外側」へ文字が伸びるようになります
+            let rotation = item.centerAngle - 90; 
+
+            text.setAttribute('transform', `rotate(${rotation}, ${tx}, ${ty})`);
+            
+        } else {
+            // 縦書きモード (日本語)
+            text.style.writingMode = 'vertical-rl';
+            text.style.textOrientation = 'upright';
+            text.style.glyphOrientationVertical = '0';
+            text.setAttribute('transform', `rotate(${item.centerAngle}, ${tx}, ${ty})`);
+        }
+        // ▲▲▲ 修正 ▲▲▲
+          // ▲▲▲ 修正 ▲▲▲
+
           text.setAttribute('dominant-baseline', 'central'); 
           text.setAttribute('text-anchor', 'middle'); 
-          
-          text.setAttribute('transform', `rotate(${item.centerAngle}, ${tx}, ${ty})`);
 
           // スタイル適用
           if (textCss) {
@@ -301,25 +306,33 @@ function initializeApp() {
              if (textCss['font-weight']) text.style.fontWeight = textCss['font-weight'];
           }
           
-          // 計算したサイズを適用
           text.style.fontSize = `${finalFontSize}px`;
 
-          // 改行(tspan)の配置
           if (lines.length > 1) {
-              // 全体の幅
-              const totalWidth = (lines.length - 1) * lineHeight;
-              // 開始位置（右側）
-              const startOffset = totalWidth / 2;
+              // 複数行処理
+              // 縦書き(vertical-rl)の場合、X座標をずらすと行が変わります。
+              // 横書き(horizontal-tb)かつ90度回転の場合、Y座標をずらすと行が変わります。
+              
+              const totalSize = (lines.length - 1) * lineHeight;
+              const startOffset = totalSize / 2;
 
               lines.forEach((line, i) => {
                   const tspan = document.createElementNS(svgNS, 'tspan');
                   tspan.textContent = line;
-                  // 縦書きなので X座標 をずらすことで行を変える
-                  // i=0(1行目)が一番右(startOffset)、そこから左へずらす
-                  const currentX = tx + startOffset - (i * lineHeight);
+
+                  if (item.isHorizontal) {
+                      // 横書きの場合：Y座標をずらして行を変える
+                      // i=0が一番上（回転しているので実際は左側）
+                      const currentY = ty - startOffset + (i * lineHeight);
+                      tspan.setAttribute('x', tx);
+                      tspan.setAttribute('y', currentY);
+                  } else {
+                      // 縦書きの場合：X座標をずらして行を変える
+                      const currentX = tx + startOffset - (i * lineHeight);
+                      tspan.setAttribute('x', currentX);
+                      tspan.setAttribute('y', ty);
+                  }
                   
-                  tspan.setAttribute('x', currentX);
-                  tspan.setAttribute('y', ty); 
                   text.appendChild(tspan);
               });
           } else {
