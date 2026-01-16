@@ -1,0 +1,123 @@
+# 📜 テーマJSONファイル仕様書 (v2.1 最終版)
+
+## 1\. 🎯 必須要件（Strict Constraints）
+
+| 項目 | プロパティ/値 | 理由 |
+| :--- | :--- | :--- |
+| **JSONコメント** | **禁止** | JSONパーサーの構文エラーを防ぎます。 |
+| **ファイル名** | 必須: `[themeId].json` と完全に一致させること。 | アプリケーションがファイルを正しくロードするために必須です。 |
+| **`svgViewBox`** | `"0 0 480 480"` に固定。 | SVGの描画領域を定義します。 |
+
+-----
+
+## 2\. 🎡 ルーレット本体と装飾の配置
+
+### 2.1. ルーレット本体 (`.roulette-wrapper`)
+
+`css`配列内に以下の設定を**必ず含めてください**。
+
+| CSSセレクタ | 必須CSSプロパティ | 理由 |
+| :--- | :--- | :--- |
+| `body` | `overflow: hidden !important;` | スクロールバーの発生を完全に防ぎます。 |
+| `.roulette-wrapper` | `width: 480px !important;` | ルーレットのサイズ固定。 |
+| | `height: 480px !important;` | ルーレットのサイズ固定。 |
+| | **`top: 260px;`** | 画面上端から260pxの位置に基準点を固定します。 |
+| | `position: absolute !important;` | |
+
+### 2.2. 前面装飾 (`foregroundHtml`) の配置
+
+`foregroundHtml`内の要素は、ルーレットの中心（Y=260px）を基準に配置します。
+
+| 要素 | 基準位置 (CSS) | 備考 |
+| :--- | :--- | :--- |
+| **ポインター (`.pointer`)** | `position: absolute; top: 10px` ～ `50px; left: 50%; transform: translateX(-50%);` | ルーレットの円周上端を指すよう調整します。 |
+| **中央ハブ (`.center-hub`など)** | `position: absolute; top: 260px; left: 50%; transform: translate(-50%, -50%);` | ルーレットの中心と完全に重ねます。 |
+
+-----
+
+## 3\. 🎨 スタイル設定（UI/セグメント）
+
+### 3.1. UI要素のCSS
+
+`master.html`が**位置** (`top`など) を固定で制御するため、テーマJSONの`css`内では**スタイルのみ**を定義し、**位置指定(`top`, `right`, `width`, `height`など)を定義しないでください**。
+
+| CSSセレクタ | 定義する内容 (例: `background`, `color`, `font-size`) | 定義してはならない内容 |
+| :--- | :--- | :--- |
+| `#spinBtn` | スタイル設定のみ。 | `position`, `top`, `left`, `transform` |
+| `#result` | スタイル設定のみ。 | `position`, `top`, `left`, `transform` |
+| `#legend-area` | スタイル設定のみ。 | `top`, `right`, `width`, `max-height` |
+
+### 3.2. セグメントCSS (`segmentCss`) の必須プロパティ
+
+**セグメントのテキスト描画の互換性**を確保するため、`segmentCss.text`には以下のプロパティを**必ず含めてください**。
+
+| プロパティ | 必須プロパティと値の例 | 理由 |
+| :--- | :--- | :--- |
+| **`segmentCss.path`** | `"stroke"`, `"stroke-width"`。 | セグメントの境界線を定義します。 |
+| **`segmentCss.text.fill`** | `"fill": "#FFFFFF"`。 | テキストの色。 |
+| **`segmentCss.text.font-size`** | `"font-size": "22px"`。 | `rouletteRenderer.js`がサイズ計算に利用します。 |
+| **`segmentCss.text.font-family`** | `"font-family": "Arial, sans-serif"`。 | テキストのフォント。 |
+
+-----
+
+## 4\. 📝 テンプレート (コメント無し)
+
+```json
+{
+  "themeId": "your_unique_id",
+  "name": "テーマ名",
+  "backgroundHtml": [
+    "<div class=\"bg-decoration\"></div>"
+  ],
+  "foregroundHtml": [
+    "<div class=\"pointer\"></div>",
+    "<div class=\"center-hub\"></div>"
+  ],
+  "css": [
+    "body { overflow: hidden !important; }",
+    "",
+    ".roulette-wrapper {",
+    "  width: 480px !important;",
+    "  height: 480px !important;",
+    "  position: absolute !important;",
+    "  top: 260px;",
+    "  left: 50%;",
+    "  transform: translate(-50%, -50%);",
+    "  margin: 0 !important;",
+    "}",
+    "",
+    "#roulette-svg-target {",
+    "  background: #FFFFFF;",
+    "  border-radius: 50%;",
+    "}",
+    "",
+    ".pointer { position: absolute; top: 35px; left: 50%; transform: translateX(-50%); }",
+    ".center-hub { position: absolute; top: 260px; left: 50%; transform: translate(-50%, -50%); }",
+    "",
+    "#spinBtn { color: black; background: white; border: 2px solid gray; }",
+    "#result { color: red; font-size: 30px; }",
+    "#legend-area { background: rgba(255, 255, 255, 0.9); border: 1px solid #ccc; color: #333; }",
+    ""
+  ],
+  "segmentCss": {
+    "path": { 
+      "stroke": "#000000", 
+      "stroke-width": 4,
+      "fill-type": "solid" 
+    },
+    "text": { 
+      "font": "bold 22px Arial",
+      "fill": "#000000", 
+      "filter": "drop-shadow(0px 2px 3px rgba(255, 255, 255, 0.9))",
+      "font-size": "22px",
+      "font-weight": "bold",
+      "font-family": "Arial, sans-serif"
+    }
+  },
+  "colorProfile": {
+    "type": "fixed-list",
+    "colors": [ "#FFCCCC", "#CCFFCC", "#CCCCFF" ]
+  },
+  "svgViewBox": "0 0 480 480"
+}
+```

@@ -1,11 +1,67 @@
 {
-  "name": "streamer_roulette",
-  "version": "1.0.3",
-  "description": "",
+  "name": "spinstream",
+  "version": "1.0.4",
+  "description": "Streamer Roulette App",
   "main": "main.js",
+  "author": "NiskyNow",
+  "license": "ISC",
   "repository": {
     "type": "git",
     "url": "https://github.com/NiskyNow/theme-roulette.git"
+  },
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "release": "electron-builder --publish always",
+    "postbuild": "powershell -Command \"Compress-Archive -Path 'dist/SpinStream_Setup.exe', 'manual.pdf' -DestinationPath 'dist/SpinStream_Install_Set.zip' -Force\""
+  },
+  "build": {
+    "appId": "com.niskynow.spinstream",
+    "productName": "SpinStream",
+    "compression": "maximum",
+    "electronLanguages": [
+      "ja",
+      "en"
+    ],
+    "asar": true,
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "Preload.js",
+      "settingsRenderer.js",
+      "rouletteRenderer.js",
+      "*.html",
+      "package.json",
+      "roulette_themes/**/*",
+      "theme_profiles/**/*",
+      "sounds/**/*",
+      "!dist",
+      "!.git"
+    ],
+    "extraResources": [
+      {
+        "from": "manual.pdf",
+        "to": "manual.pdf"
+      }
+    ],
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": true,
+      "artifactName": "${productName}_Setup.${ext}"
+    },
+    "portable": {
+      "artifactName": "${productName}.${ext}"
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "icon.ico"
+    }
   },
   "dependencies": {
     "ajv": "^8.17.1",
@@ -89,21 +145,7 @@
     "yauzl": "^2.10.0"
   },
   "devDependencies": {
-    "electron": "^39.2.0"
-  },
-  "scripts": {
-    "start": "electron .",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "publish": [
-    {
-      "provider": "github",
-      "owner": "NiskyNow",
-      "repo": "theme-roulette"
-    }
-  ],
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs"
+    "electron": "^39.2.0",
+    "electron-builder": "^24.9.1"
+  }
 }
