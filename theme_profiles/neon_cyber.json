@@ -40,7 +40,16 @@
   },
   "colorProfile": {
     "type": "fixed-list",
-    "colors": [ "#ff0066", "#00ff88", "#ffaa00", "#0088ff", "#aa00ff" ]
+    "colors": [
+      "#FF00FF",
+      "#00FFFF",
+      "#FF0066",
+      "#00FF99",
+      "#CC00FF",
+      "#FFFF00",
+      "#0066FF",
+      "#FF3300"
+    ]
   },
   "svgViewBox": "0 0 480 480"
 }

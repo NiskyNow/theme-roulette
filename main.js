@@ -19,7 +19,7 @@ const store = new Store.default({
           id: 'default-profile',
           name: 'デフォルト',
           settings: {
-            theme: 'arcade', 
+            theme: 'candy', 
             fakeEnabled: false,
             transparentBg: true
           },
@@ -141,6 +141,20 @@ app.whenReady().then(() => {
       // 前回のアクティブプロファイル、または最初のプロファイルを取得
       const activeProfile = appData.profiles.find(p => p.id === appData.activeProfileId) || appData.profiles[0];
       
+      // ▼▼▼ テーマファイルの存在チェックとフォールバック ▼▼▼
+      const currentThemeId = activeProfile.settings.theme || 'arcade';
+      const themeFilePath = path.join(__dirname, 'theme_profiles', `${currentThemeId}.json`);
+
+      if (!fs.existsSync(themeFilePath)) {
+          console.warn(`Theme "${currentThemeId}" not found at ${themeFilePath}. Resetting to default.`);
+          
+          // 安全なデフォルトテーマ（arcade）に書き換え
+          activeProfile.settings.theme = 'arcade';
+          // 変更を永続化
+          store.set('appData', appData);
+      }
+      // ▲▲▲ ▲▲▲
+
       // ルーレットを開く
       createRouletteWindow(activeProfile);
   } else {
