@@ -1,4 +1,4 @@
-// settingsRenderer.js (v2.0 - 確率・自動計算対応版)
+// settingsRenderer.js
 
 /* === Electronとの通信 === */
 const api = window.electronAPI;
@@ -24,12 +24,32 @@ window.onload = async () => {
     dom.itemsContainer = document.getElementById('items-list-container');
     dom.itemTemplate = document.getElementById('item-template');
     dom.totalProbDisplay = document.getElementById('total-prob-display');
-    dom.itemsHeader = document.getElementById('items-header');
+    
+    // UIパーツ
     dom.saveBtn = document.getElementById('save-btn');
     dom.saveStatus = document.getElementById('save-status');
     dom.fakeEnabled = document.getElementById('fake-enabled');
     dom.themeSelect = document.getElementById('theme-select'); 
-    dom.selectAllHorizontal = document.getElementById('select-all-horizontal'); // ▼追加
+    dom.selectAllHorizontal = document.getElementById('select-all-horizontal');
+    dom.muteEnabled = document.getElementById('mute-enabled'); // 無音
+    
+    // 演出モード関連
+    dom.spinModeSelect = document.getElementById('spin-mode-select');
+    dom.musicSettingsArea = document.getElementById('music-settings-area');
+    dom.spinDurationSlider = document.getElementById('spin-duration-slider');
+    dom.durationText = document.getElementById('duration-text');
+    dom.bgmPathDisplay = document.getElementById('bgm-path-display');
+    dom.bgmSelectBtn = document.getElementById('bgm-select-btn');
+    dom.bgmResetBtn = document.getElementById('bgm-reset-btn');
+    dom.bgmWarning = document.getElementById('bgm-warning'); // 警告
+
+    dom.openFolderBtn = document.getElementById('open-folder-btn');
+    dom.runBtn = document.getElementById('open-roulette-btn');
+
+    // ▼▼▼ 追加: フォルダボタンのクリックイベント ▼▼▼
+    dom.openFolderBtn.addEventListener('click', () => {
+        api.openSaveFolder();
+    });
 
     setupEventListeners();
     setupIPCListeners();
@@ -69,30 +89,61 @@ function setupEventListeners() {
         render(); 
     });
 
+    // 設定変更イベント
     dom.fakeEnabled.addEventListener('change', (e) => actions.updateSettings('fakeEnabled', e.target.checked));
+    dom.muteEnabled.addEventListener('change', (e) => actions.updateSettings('isMuted', e.target.checked));
     dom.themeSelect.addEventListener('change', (e) => actions.updateSettings('theme', e.target.value));
 
+    // モード変更イベント（即時反映）
+    dom.spinModeSelect.addEventListener('change', (e) => {
+        const mode = e.target.value;
+        actions.updateSettings('spinMode', mode);
+        toggleMusicSettings(mode);
+    });
+
+    // BGM関連
+    dom.bgmSelectBtn.addEventListener('click', async () => {
+        const path = await api.selectAudioFile();
+        if (path) {
+            actions.updateSettings('bgmPath', path);
+            dom.bgmPathDisplay.value = path;
+            validateBgm(); // チェック
+        }
+    });
+
+    dom.bgmResetBtn.addEventListener('click', () => {
+        // リセット時は sounds/music.mp3 に戻す
+        const defaultBgm = 'sounds/music.mp3';
+        actions.updateSettings('bgmPath', defaultBgm);
+        dom.bgmPathDisplay.value = defaultBgm;
+        validateBgm();
+    });
+
+    dom.spinDurationSlider.addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        dom.durationText.textContent = val.toFixed(1) + "秒";
+        actions.updateSettings('musicDuration', val);
+    });
+
     dom.saveBtn.addEventListener('click', () => {
-        actions.saveData(true);
+        // 保存に成功したら、ルーレットも更新する
+        if (actions.saveData(true)) {
+            api.send('run-or-update-roulette', state.currentProfile);
+        }
     });
     
-    document.getElementById('open-roulette-btn').addEventListener('click', () => {
+    dom.runBtn.addEventListener('click', () => {
         if (actions.saveData(false)) {
             api.send('run-or-update-roulette', state.currentProfile);
         }
     });
 
-    // ▼追加: 全選択チェックボックスのイベント
     dom.selectAllHorizontal.addEventListener('change', (e) => {
         const isChecked = e.target.checked;
         const profile = state.currentProfile;
         if (!profile) return;
-
-        // 全ての項目の isHorizontal を書き換え
-        profile.items.forEach(item => {
-            item.isHorizontal = isChecked;
-        });
-        render(); // 再描画
+        profile.items.forEach(item => { item.isHorizontal = isChecked; });
+        render();
     });
 
     dom.itemsContainer.addEventListener('change', (e) => {
@@ -104,14 +155,9 @@ function setupEventListeners() {
         if (target.classList.contains('item-name-input')) {
             actions.updateItem(index, 'name', target.value);
         } else if (target.classList.contains('prob-manual-input')) {
-            // ▼▼▼ 修正: 空欄ならAuto、数値ならFixedとして処理 ▼▼▼
             actions.updateItem(index, 'weight', target.value);
-            // ▲▲▲ 修正 ▲▲▲
         } else if (target.classList.contains('horizontal-input')) {
-            // ▼追加: 個別のチェックボックス変更イベント
             actions.updateItem(index, 'isHorizontal', target.checked);
-            
-            // 全選択ボックスの状態を整合させる（すべてチェックなら全選択もON、ひとつでもOFFならOFF）
             const allChecked = state.currentProfile.items.every(i => i.isHorizontal);
             dom.selectAllHorizontal.checked = allChecked;
         }
@@ -140,9 +186,9 @@ function setupIPCListeners() {
             const newId = `profile-${Date.now()}`;
             state.appData.profiles = [{
                 id: newId,
-                name: "デフォルト",
-                items: [{ "name": "新規項目", "weight": null, "isAuto": true, "isHorizontal": false }], // 初期項目はAuto
-                settings: { theme: "arcade", fakeEnabled: false, transparentBg: true }
+                name: "デフォルト設定",
+                items: [{ "name": "新規項目", "weight": null, "isAuto": true, "isHorizontal": false }],
+                settings: { theme: "arcade", fakeEnabled: false, spinMode: "suspense", bgmPath: "sounds/music.mp3" }
             }];
             state.appData.activeProfileId = newId;
         }
@@ -155,11 +201,19 @@ function setupIPCListeners() {
             currentProfile = state.currentProfile;
         }
         
-        // ▼▼▼ 既存データのマイグレーション（isAutoフラグがない場合） ▼▼▼
+        // ▼▼▼ 互換性チェック: 未設定の値をデフォルトで埋める ▼▼▼
+        if (!currentProfile.settings) currentProfile.settings = {};
+        
+        // モード未設定(古いデータ)ならサスペンスにする
+        if (!currentProfile.settings.spinMode) currentProfile.settings.spinMode = 'suspense';
+        
+        // 無音未設定ならOFF
+        if (currentProfile.settings.isMuted === undefined) currentProfile.settings.isMuted = false;
+
+        // アイテム設定の互換性
         if (currentProfile.items) {
             currentProfile.items.forEach(item => {
                 if (item.isAuto === undefined) {
-                    // weightがnull/0/空文字ならAutoとみなす、それ以外はFixed
                     item.isAuto = (item.weight === null || item.weight === 0 || item.weight === "");
                 }
                 if (item.isHorizontal === undefined) {
@@ -167,13 +221,18 @@ function setupIPCListeners() {
                 }
             });
         }
-        // ▲▲▲ 修正 ▲▲▲
+
+        // ▼▼▼ 互換性チェック: BGM未設定ならデフォルトを入れる ▼▼▼
+        if (!currentProfile.settings.bgmPath) {
+            currentProfile.settings.bgmPath = "sounds/music.mp3";
+        }
+        // ▲▲▲ ▲▲▲
 
         render();
     });
     
-    api.on('data-saved', (message) => showSaveStatus('✅ 設定を保存しました!', 'success', 3000));
-    api.on('data-save-error', (message) => showSaveStatus(`🚨 エラー: ${message}`, 'error'));
+    api.on('data-saved', (message) => showSaveStatus('✅ 保存しました!', '#2B6CB0', 3000));
+    api.on('data-save-error', (message) => showSaveStatus(`🚨 エラー: ${message}`, '#C53030'));
 }
 
 const actions = {
@@ -182,9 +241,7 @@ const actions = {
     addItem() {
         const profile = state.currentProfile;
         if (!profile) return;
-        // ▼▼▼ 修正: 新規項目は「Auto (空欄)」で追加 ▼▼▼
         profile.items.push({ name: "新規項目", weight: null, isAuto: true, isHorizontal: false });
-        // ▲▲▲ 修正 ▲▲▲
     },
     
     updateItem(index, key, value) {
@@ -192,34 +249,36 @@ const actions = {
         if (!profile || !profile.items[index]) return;
         
         if (key === 'weight') {
-            // ▼▼▼ 修正: 空欄か数値かでフラグを切り替え ▼▼▼
             if (value === '' || value === null) {
                 profile.items[index].isAuto = true;
-                profile.items[index].weight = null; // 内部的にはnullにしておく
+                profile.items[index].weight = null;
             } else {
                 profile.items[index].isAuto = false;
                 profile.items[index].weight = parseFloat(value);
             }
-            // ▲▲▲ 修正 ▲▲▲
         } else {
             profile.items[index][key] = value;
         }
-        render(); // 再計算して表示更新
+        render(); 
     },
     
     updateSettings(key, value) {
         const profile = state.currentProfile;
         if (profile) {
-            if (!profile.settings) profile.settings = { theme: "arcade", fakeEnabled: false };
+            if (!profile.settings) profile.settings = {};
             profile.settings[key] = value;
         }
     },
     
     saveData(showStatus = true) {
-        if (showStatus) showSaveStatus('保存中...', '');
+        // BGMチェック
+        if (!validateBgm()) {
+            // エラー表示して中断するか、警告だけ出すか。ここでは警告のみで保存はさせる（次回設定するため）
+            if(showStatus) showSaveStatus('⚠️ BGMが設定されていません', '#C05621');
+        } else {
+            if (showStatus) showSaveStatus('保存中...', '');
+        }
         
-        // 保存前に計算を実行し、Auto項目のweightに実際の値をセットする
-        // これにより、ルーレット側は計算済みの数値を受け取れる
         const { isValid } = calculateAndDistribute(state.currentProfile.items);
         
         if (isValid && validateProfile()) {
@@ -231,19 +290,18 @@ const actions = {
         }
     },
     
+    // ... (削除・新規作成などのメソッドは以前と同じ) ...
     handleDeleteClick(index) {
         const profile = state.currentProfile;
         if (!profile || !profile.items[index]) return;
         
         Swal.fire({
             title: "削除", 
-            text: `「${profile.items[index].name || '新規項目'}」を削除しますか？`,
+            text: `この項目を削除しますか？`,
             icon: "warning",
-            showCancelButton: true, 
-            confirmButtonColor: "#d33",
+            showCancelButton: true, confirmButtonColor: "#C53030",
             confirmButtonText: "削除", cancelButtonText: "キャンセル",
-            heightAuto: false,
-            scrollbarPadding: false
+            heightAuto: false
         }).then((result) => {
             if (result.isConfirmed) {
                 if (profile.items.length <= 1) {
@@ -256,21 +314,18 @@ const actions = {
         });
     },
 
-    // (以下、プロファイル作成・削除系は変更なし)
     async handleNewProfile() {
         const { value: newName } = await Swal.fire({
-            title: "新しいプロファイル", input: "text", inputLabel: "プロファイル名",
-            inputValue: "新規プロファイル", showCancelButton: true, confirmButtonText: "作成", cancelButtonText: "キャンセル",
-            inputValidator: (value) => !value && "名前を入力してください",
-            heightAuto: false,
-            scrollbarPadding: false
+            title: "新規作成", input: "text", inputLabel: "保存設定の名前",
+            inputValue: "新しい設定", showCancelButton: true, confirmButtonText: "作成",
+            heightAuto: false
         });
         if (newName) {
             const newId = `profile-${Date.now()}`;
             state.appData.profiles.push({
                 id: newId, name: newName, 
                 items: [{ "name": "新規項目", "weight": null, "isAuto": true, isHorizontal: false }],
-                settings: { theme: "arcade", fakeEnabled: false, transparentBg: true }
+                settings: { theme: "arcade", fakeEnabled: false, spinMode: "suspense", bgmPath: "sounds/music.mp3" }
             });
             actions.loadProfile(newId);
         }
@@ -279,11 +334,9 @@ const actions = {
         const profile = state.currentProfile;
         if (!profile) return;
         const { value: newName } = await Swal.fire({
-            title: "プロファイル名の変更", input: "text", inputLabel: "新しい名前",
-            inputValue: profile.name, showCancelButton: true, confirmButtonText: "変更", cancelButtonText: "キャンセル",
-            inputValidator: (value) => !value && "名前を入力してください",
-            heightAuto: false,
-            scrollbarPadding: false
+            title: "名前変更", input: "text", inputValue: profile.name, 
+            showCancelButton: true, confirmButtonText: "変更",
+            heightAuto: false
         });
         if (newName) {
             profile.name = newName;
@@ -291,202 +344,168 @@ const actions = {
         }
     },
     handleDeleteProfile() {
-        if (state.appData.profiles.length <= 1) return Swal.fire({
-            title: "エラー", text: "最後のプロファイルは削除できません。", icon: "error",
-            heightAuto: false, scrollbarPadding: false
-        });
-        const profile = state.currentProfile;
+        if (state.appData.profiles.length <= 1) return;
         Swal.fire({
-            title: `「${profile.name}」を削除しますか？`, text: "この操作は元に戻せません。", icon: "warning",
-            showCancelButton: true, confirmButtonColor: "#d33", confirmButtonText: "はい、削除します", cancelButtonText: "キャンセル",
-            heightAuto: false,
-            scrollbarPadding: false
+            title: "削除確認", text: "この保存設定を削除しますか？", icon: "warning",
+            showCancelButton: true, confirmButtonColor: "#C53030", confirmButtonText: "削除",
+            heightAuto: false
         }).then((result) => {
             if (result.isConfirmed) {
-                state.appData.profiles = state.appData.profiles.filter(p => p.id !== profile.id);
+                state.appData.profiles = state.appData.profiles.filter(p => p.id !== state.currentProfileId);
                 actions.loadProfile(state.appData.profiles[0].id);
-                Swal.fire({
-                    title: "削除しました", icon: "success", timer: 1500, showConfirmButton: false,
-                    heightAuto: false, scrollbarPadding: false
-                });
             }
         });
     }
 };
 
-/* --- ▼▼▼ ロジック修正: 確率の自動計算と分配 ▼▼▼ --- */
+/* --- ロジック関数 --- */
 function calculateAndDistribute(items = []) {
     let fixedTotal = 0;
     let autoItems = [];
-
-    // 1. 手入力(Fixed)の合計を計算
     items.forEach(item => {
         if (!item.isAuto && item.weight !== null && !isNaN(item.weight)) {
             fixedTotal += parseFloat(item.weight);
         } else {
-            // Auto扱いの項目をリストアップ
-            // (念のためフラグがずれていても、weightが無効ならAutoとみなす)
             item.isAuto = true; 
             autoItems.push(item);
         }
     });
-
     let remaining = 100 - fixedTotal;
     let isValid = true;
     let message = "";
-
-    // 2. エラーチェック
-    // 誤差許容範囲を少し持たせる(0.01)
     if (remaining < -0.01) {
-        isValid = false;
-        message = `合計が100%を超えています (現在 ${fixedTotal.toFixed(1)}%)`;
+        isValid = false; message = `合計100%超 (${fixedTotal.toFixed(1)}%)`;
     } else if (autoItems.length === 0 && Math.abs(remaining) > 0.01) {
-        isValid = false;
-        message = `自動項目がなく、合計が100%になりません (現在 ${fixedTotal.toFixed(1)}%)`;
+        isValid = false; message = `合計不足 (${fixedTotal.toFixed(1)}%)`;
     }
-
-    // 3. 残りをAuto項目に分配
     if (autoItems.length > 0) {
-        // 負の残り(100%オーバー)でも、計算上は分配してマイナスを表示させる(エラー視認用)
-        // ただしUIでは0以下にしない等の制御も可
         const autoValue = Math.max(0, remaining / autoItems.length);
-        
-        autoItems.forEach(item => {
-            // UI表示と保存のために weight に値をセットする
-            // ただし isAuto フラグは true のまま維持
-            item.weight = parseFloat(autoValue.toFixed(2)); // 小数点2桁で丸める
-        });
+        autoItems.forEach(item => item.weight = parseFloat(autoValue.toFixed(2)));
     }
-
     return { fixedTotal, isValid, message };
 }
-/* --- ▲▲▲ 修正完了 ▲▲▲ --- */
-
 
 function render() {
     const profile = state.currentProfile;
     if (!profile) return;
-    if (!profile.settings) profile.settings = { theme: "arcade", fakeEnabled: false };
     
-    // 計算実行
-    const { fixedTotal, isValid, message } = calculateAndDistribute(profile.items);
+    // 計算と保存
+    calculateAndDistribute(profile.items);
     
-    renderProfileSelector();
-    renderItemsList(profile.items);
-    renderTotalProb(fixedTotal, isValid, message);
-    renderSettings(profile.settings); 
-    validateProfileForRender(isValid, message);
-}
-
-function renderProfileSelector() {
+    // プロファイル選択プルダウン更新
     dom.profileSelect.innerHTML = '';
-    state.appData.profiles.forEach(profile => {
+    state.appData.profiles.forEach(p => {
         const option = document.createElement('option');
-        option.value = profile.id;
-        option.textContent = profile.name;
-        option.selected = profile.id === state.currentProfileId;
+        option.value = p.id;
+        option.textContent = p.name;
+        option.selected = p.id === state.currentProfileId;
         dom.profileSelect.appendChild(option);
     });
+
+    // リスト描画
+    renderItemsList(profile.items);
+    
+    // 設定反映
+    if(!profile.settings) profile.settings = {};
+    const s = profile.settings;
+
+    dom.themeSelect.value = s.theme || 'arcade';
+    dom.fakeEnabled.checked = !!s.fakeEnabled;
+    dom.muteEnabled.checked = !!s.isMuted;
+    
+    const mode = s.spinMode || 'suspense'; // デフォルト: suspense
+    dom.spinModeSelect.value = mode;
+    toggleMusicSettings(mode);
+    
+    // BGM設定
+    dom.bgmPathDisplay.value = s.bgmPath || "sounds/music.mp3";
+    const dur = s.musicDuration || 8.0;
+    dom.spinDurationSlider.value = dur;
+    dom.durationText.textContent = dur.toFixed(1) + "秒";
+    
+    validateBgm();
 }
 
 function renderItemsList(items = []) {
     dom.itemsContainer.innerHTML = '';
-    // ▼追加: 全選択チェックボックスの表示状態を更新
     const allChecked = items.length > 0 && items.every(i => i.isHorizontal);
     if (dom.selectAllHorizontal) dom.selectAllHorizontal.checked = allChecked;
 
     items.forEach((item, index) => {
-        const itemRow = dom.itemTemplate.content.cloneNode(true);
-        const itemCard = itemRow.querySelector('.item-card');
-        itemCard.dataset.index = index;
+        const clone = dom.itemTemplate.content.cloneNode(true);
+        const card = clone.querySelector('.item-card');
+        card.dataset.index = index;
         
-        itemRow.querySelector('.item-index').textContent = index + 1;
-        itemRow.querySelector('.item-name-input').value = item.name || "";
-        
-        const probInput = itemRow.querySelector('.prob-manual-input');
-        
-        // ▼▼▼ 修正: Autoなら値を空にしてプレースホルダーに計算値を表示 ▼▼▼
+        clone.querySelector('.item-index').textContent = index + 1;
+
+        // テキストエリア自動リサイズ
+        const nameInput = clone.querySelector('.item-name-input');
+        nameInput.value = item.name || "";
+        const autoResize = (el) => {
+            el.style.height = 'auto';
+            el.style.height = el.scrollHeight + 'px';
+        };
+        nameInput.addEventListener('input', () => autoResize(nameInput));
+        setTimeout(() => autoResize(nameInput), 0);
+
+        const probInput = clone.querySelector('.prob-manual-input');
         if (item.isAuto) {
-            probInput.value = ""; // 空にする
+            probInput.value = "";
             probInput.placeholder = item.weight !== null ? `${item.weight}%` : "Auto";
-            probInput.classList.add("is-auto"); // スタイル用クラス（必要なら）
+            probInput.classList.add("is-auto");
         } else {
             probInput.value = item.weight;
             probInput.placeholder = "数値";
             probInput.classList.remove("is-auto");
         }
-        // ▲▲▲ 修正 ▲▲▲
         
-        // ▼追加: 横書きチェックボックスの状態反映
-        const horizInput = itemRow.querySelector('.horizontal-input');
-        horizInput.checked = item.isHorizontal || false;
-
-        itemRow.querySelector('.delete-btn-wrapper').style.display = 'flex';
-        dom.itemsContainer.appendChild(itemRow);
+        clone.querySelector('.horizontal-input').checked = !!item.isHorizontal;
+        dom.itemsContainer.appendChild(clone);
     });
 }
 
-function renderTotalProb(fixedTotal, isValid, message) {
-    if (!isValid) {
-        dom.totalProbDisplay.textContent = "エラー";
-        dom.totalProbDisplay.style.background = "#F4A98B"; // エラー色
+function toggleMusicSettings(mode) {
+    if (mode === 'music') {
+        dom.musicSettingsArea.classList.add('visible');
     } else {
-        dom.totalProbDisplay.textContent = "合計: 100%";
-        dom.totalProbDisplay.style.background = "#A1D8D4"; // 正常色
+        dom.musicSettingsArea.classList.remove('visible');
     }
 }
 
-function renderSettings(settings = {}) {
-    dom.itemsHeader.textContent = `📝 項目の設定`;
-    dom.fakeEnabled.checked = settings.fakeEnabled || false;
-    dom.themeSelect.value = settings.theme || 'arcade'; 
-}
-
-// 描画時の簡易バリデーション表示
-function validateProfileForRender(isValid, message) {
-    if (!isValid) {
-        showSaveStatus(message, 'error');
-        dom.saveBtn.disabled = true;
+// BGMチェック
+function validateBgm() {
+    const p = state.currentProfile;
+    if (!p || !p.settings) return true;
+    
+    // ミュージックモードかつBGMなしの場合
+    if (p.settings.spinMode === 'music' && !p.settings.bgmPath) {
+        dom.bgmWarning.style.display = 'block';
+        dom.bgmPathDisplay.classList.add('error');
+        return false;
     } else {
-        const hasEmptyName = state.currentProfile.items.some(item => !item.name || item.name.trim() === "");
-        if (hasEmptyName) {
-            showSaveStatus('項目名が空のマスがあります。', 'error');
-            dom.saveBtn.disabled = true;
-        } else {
-            hideSaveStatus();
-            dom.saveBtn.disabled = false;
-        }
+        dom.bgmWarning.style.display = 'none';
+        dom.bgmPathDisplay.classList.remove('error');
+        return true;
     }
 }
 
-// 保存時の最終チェック
 function validateProfile() {
     const { isValid, message } = calculateAndDistribute(state.currentProfile.items);
-    if (!isValid) {
-        showSaveStatus(message, 'error');
-        return false;
-    }
+    if (!isValid) { showSaveStatus(message, '#C53030'); return false; }
+    
     const hasEmptyName = state.currentProfile.items.some(item => !item.name || item.name.trim() === "");
-    if (hasEmptyName) {
-        showSaveStatus('項目名が空のマスがあります。', 'error');
-        return false;
-    }
+    if (hasEmptyName) { showSaveStatus('項目名が空のマスがあります', '#C53030'); return false; }
+    
     return true;
 }
 
-function showSaveStatus(message, type, timeout = 0) {
+function showSaveStatus(message, color, timeout = 0) {
     dom.saveStatus.textContent = message;
-    dom.saveStatus.className = type; 
+    dom.saveStatus.style.color = color || '#333';
     dom.saveStatus.style.display = 'block';
     if (timeout > 0) {
         setTimeout(() => {
-            if (dom.saveStatus.className === type) hideSaveStatus();
+            if (dom.saveStatus.textContent === message) dom.saveStatus.textContent = '';
         }, timeout);
     }
-}
-
-function hideSaveStatus() {
-    dom.saveStatus.textContent = '';
-    dom.saveStatus.className = '';
-    dom.saveStatus.style.display = 'none';
 }

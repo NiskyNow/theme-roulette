@@ -1,6 +1,6 @@
 // main.js (v2.3 - 起動時ルーレット & 幅広版)
 
-const { app, BrowserWindow, ipcMain, Menu, dialog } = require('electron'); // ▼ dialogを追加
+const { app, BrowserWindow, ipcMain, Menu, dialog, shell } = require('electron'); // ▼ shellを追加
 const path = require('path');
 const Store = require('electron-store');
 const fs = require('fs');
@@ -70,29 +70,23 @@ async function createRouletteWindow(profile) {
       return;
   }
   
+  // 既存のウィンドウがある場合は一度閉じて再生成（透明度やサイズの変更を確実に反映するため）
   if (rouletteWindow && !rouletteWindow.isDestroyed()) {
-      console.warn("ウィンドウが既に存在します。再生成せずフォーカスします。");
-      rouletteWindow.focus();
-      return;
+      rouletteWindow.close();
+      rouletteWindow = null;
   }
 
   const themeHtmlPath = 'roulette_themes/master.html';
   const fullHtmlPath = path.join(__dirname, themeHtmlPath);
   
-  if (!fs.existsSync(fullHtmlPath)) {
-      console.error(`マスターファイルが見つかりません: ${themeHtmlPath}`);
-      // 設定画面が開いていればエラーを送る
-      if (settingsWindow && !settingsWindow.isDestroyed()) {
-          settingsWindow.webContents.send('data-save-error', `システムエラー: ${themeHtmlPath} が見つかりません。`);
-      }
-      return;
-  }
-
   rouletteWindow = new BrowserWindow({
-    width: 620,
-    height: 800, // ▼▼▼ 修正: 700 -> 800 に拡張 ▼▼▼
-    transparent: true,
-    frame: false,
+    width: 650,  // ネオンがはみ出る余裕を持たせる
+    height: 750, // ボタンが見切れないように調整
+    transparent: true, 
+    frame: false,      // 枠なし
+    hasShadow: false,  // 影なし（透過時のノイズ防止）
+    backgroundColor: '#00000000', // 完全透明
+    alwaysOnTop: true,
     resizable: true,
     webPreferences: {
       preload: path.join(__dirname, 'Preload.js'),
@@ -127,6 +121,10 @@ async function createRouletteWindow(profile) {
 
 // --- 4. アプリ起動時の動作 (修正) ---
 app.whenReady().then(() => {
+  // ▼▼▼ この1行を追加してメニューバーを消去します ▼▼▼
+  Menu.setApplicationMenu(null); 
+  // ▲▲▲ 追加 ▲▲▲
+
   // ▼▼▼ 追加: アップデート確認の実行 ▼▼▼
   // 開発環境(dev)ではエラーになることがあるので、本番ビルド時のみ動くようにするガード
   if (app.isPackaged) {
@@ -414,4 +412,30 @@ ipcMain.on('show-roulette-context-menu', (event) => {
     if (rouletteWindow && !rouletteWindow.isDestroyed()) {
          contextMenu.popup({ window: rouletteWindow });
     }
+});
+
+// (G) ファイル選択ダイアログを開く
+ipcMain.handle('open-file-dialog', async () => {
+    // ▼▼▼ 修正: デフォルトパスを sounds フォルダに指定 ▼▼▼
+    const defaultPath = path.join(__dirname, 'sounds'); 
+
+    const { canceled, filePaths } = await dialog.showOpenDialog({
+        defaultPath: defaultPath, // ここで指定
+        properties: ['openFile'],
+        filters: [
+            { name: 'Audio', extensions: ['mp3', 'wav', 'ogg'] }
+        ]
+    });
+    if (canceled) {
+        return null;
+    } else {
+        return filePaths[0]; // 選択されたファイルのフルパスを返す
+    }
+});
+
+// (H) 保存フォルダを開く
+ipcMain.handle('open-save-folder', async () => {
+    // electron-store がデータを保存しているフォルダ (UserData) を開く
+    const folderPath = app.getPath('userData'); 
+    await shell.openPath(folderPath);
 });

@@ -15,6 +15,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.send(channel, data);
     }
   },
+
+  // ファイル選択ダイアログ
+  selectAudioFile: async () => {
+    return await ipcRenderer.invoke('open-file-dialog');
+  },
+
+  // 保存フォルダを開く
+  openSaveFolder: async () => {
+    return await ipcRenderer.invoke('open-save-folder');
+  },
   
   // main.js から 'data-loaded' や 'data-saved' を受信
   on: (channel, callback) => {
@@ -39,6 +49,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // 右クリックで main.js にコンテキストメニューを要求
   showRouletteContextMenu: () => {
     ipcRenderer.send('show-roulette-context-menu');
+  },
+  
+  // ファイル選択ダイアログ (BGM用)
+  selectAudioFile: async () => {
+    return await ipcRenderer.invoke('open-file-dialog');
   },
   // ▲▲▲ 修正 ▲▲▲
   

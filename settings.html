@@ -3,243 +3,319 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ルーレット設定</title>
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet">
+<title>Roulette Config</title>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+
 <style>
-    /* ... (既存のスタイルは維持しつつ、以下を修正・追加) ... */
-    
-    .swal2-popup { font-family: 'Nunito', 'M PLUS Rounded 1c', sans-serif; }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    input, button, select, textarea { font-family: inherit; }
-    html, body { height: 100%; font-family: 'Nunito', 'M PLUS Rounded 1c', sans-serif; background: #F9F5F0; color: #5A4A42; overflow: hidden; }
-    
-    /* ... (省略: ヘッダーやパネルのスタイルは変更なし) ... */
-    .app-container { height: 100%; display: flex; flex-direction: column; }
-    .header { background: #F9F5F0; padding: 16px 24px; box-shadow: 4px 4px 8px rgba(217, 210, 201, 0.6), -4px -4px 8px rgba(255, 255, 255, 0.9); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; position: relative; z-index: 10; }
-    .header-title { font-size: 22px; font-weight: 800; background: linear-gradient(135deg, #5A4A42 0%, #7A6A62 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.5px; }
-    .profile-manager { display: flex; align-items: center; gap: 8px; }
-    .profile-manager label { font-size: 13px; font-weight: 600; color: #5A4A42; }
-    #profile-select { padding: 8px 12px; border: none; border-radius: 10px; font-size: 13px; font-weight: 500; min-width: 150px; background: #F9F5F0; cursor: pointer; transition: all 0.3s ease; box-shadow: inset 3px 3px 6px rgba(217, 210, 201, 0.7), inset -3px -3px 6px rgba(255, 255, 255, 0.9); }
-    #profile-select:focus { outline: none; }
-    .btn-profile { padding: 8px 14px; border: none; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 4px 4px 8px rgba(217, 210, 201, 0.6), -4px -4px 8px rgba(255, 255, 255, 0.9); }
-    .btn-profile:active { box-shadow: inset 2px 2px 4px rgba(217, 210, 201, 0.7), inset -2px -2px 4px rgba(255, 255, 255, 0.9); transform: translateY(1px); }
-    .btn-profile.btn-new { background: #A1D8D4; color: white; }
-    .btn-profile.btn-rename { background: #A4D7E2; color: white; }
-    .btn-profile.btn-delete { background: #F8C6C3; color: white; }
-    .main-container { display: flex; flex: 1; overflow: visible; padding: 16px; gap: 16px; min-height: 0; }
-    .left-panel { flex: 1; background: #F9F5F0; border-radius: 16px; padding: 24px; box-shadow: inset 4px 4px 8px rgba(217, 210, 201, 0.7), inset -4px -4px 8px rgba(255, 255, 255, 0.9); position: relative; z-index: 0; display: flex; flex-direction: column; min-height: 0; }
-    .right-panel { width: 340px; display: flex; flex-direction: column; gap: 16px; position: relative; z-index: 1; }
-    .card { background: #F9F5F0; border-radius: 16px; padding: 24px; box-shadow: 8px 8px 16px rgba(217, 210, 201, 0.6), -8px -8px 16px rgba(255, 255, 255, 0.9); flex-shrink: 0; }
-    .card-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 16px; }
-    .card h2 { font-size: 18px; font-weight: 700; color: #5A4A42; margin: 0; }
-    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-shrink: 0; }
-    .section-title { font-size: 20px; font-weight: 700; color: #5A4A42; }
-    .total-prob { padding: 10px 16px; background: #A1D8D4; color: white; border-radius: 10px; font-weight: 700; font-size: 14px; box-shadow: 4px 4px 8px rgba(217, 210, 201, 0.6), -4px -4px 8px rgba(255, 255, 255, 0.9); }
-    
-    /* ▼▼▼ 修正1: グリッド定義 (列幅の設定) ▼▼▼ */
-    /* 全ての列の中身を「中央揃え (justify-items: center)」にします */
-    .items-grid { 
-        display: grid; 
-        /* 横書き(英字)列は 60px */
-        grid-template-columns: 40px 1fr 120px 60px 50px; 
-        gap: 8px;
-        align-items: center;      /* 縦方向の中央揃え */
-        justify-items: center;    /* 横方向の中央揃え（これでズレが目立たなくなります） */
+    /* === 基本設定 === */
+    :root {
+        --bg-color: #E6E9EF;
+        --panel-bg: #FFFFFF;
+        --text-main: #1A202C;
+        --text-sub: #4A5568;
+        --border-color: #CBD5E0;
+        --accent-primary: #2B6CB0;
+        --accent-warning: #C05621;
+        --accent-danger: #C53030;
     }
 
-    /* 項目名の列だけは「左揃え」に戻す */
-    .items-grid > .text-middle, 
-    .items-grid > .item-name-input {
-        justify-self: stretch; /* 幅いっぱいに広げる */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    html, body { 
+        height: 100%; 
+        font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+        background: var(--bg-color); 
+        color: var(--text-main);
+        overflow: hidden; 
+        font-size: 13px;
+    }
+    
+    input, button, select, textarea { font-family: inherit; font-size: inherit; outline: none; }
+
+    /* === レイアウト === */
+    .app-container { height: 100%; display: flex; flex-direction: column; }
+    
+    /* ヘッダー */
+    .header { 
+        background: var(--panel-bg); 
+        padding: 0 16px; 
+        height: 54px; /* 少し高さを確保 */
+        display: flex; justify-content: space-between; align-items: center; 
+        flex-shrink: 0;
+        border-bottom: 1px solid var(--border-color);
+        z-index: 10;
+    }
+    .header-title { 
+        font-size: 16px; font-weight: 800; color: var(--text-main); 
+        display: flex; align-items: center; gap: 8px;
+    }
+    
+    /* プロファイル操作エリア */
+    .profile-manager { 
+        display: flex; 
+        align-items: center; 
+        gap: 10px; 
+    }
+    
+    /* ラベルのスタイル */
+    .profile-label-text {
+        font-size: 13px; 
+        font-weight: 700; 
+        color: var(--text-main); 
+        white-space: nowrap;
+    }
+    
+    #profile-select { 
+        padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border-color); 
+        background: #fff; font-weight: 700; color: var(--text-main); 
+        height: 30px; min-width: 180px; cursor: pointer;
+    }
+
+    .btn-profile { 
+        padding: 0 10px; height: 30px; border: 1px solid transparent; border-radius: 4px; 
+        font-weight: 700; cursor: pointer; background: transparent; color: var(--text-sub);
+        transition: all 0.2s; white-space: nowrap;
+    }
+    .btn-profile:hover { background: #EDF2F7; color: var(--text-main); border-color: #CBD5E0; }
+    .btn-profile.btn-new { color: #2B6CB0; }
+    .btn-profile.btn-delete { color: #C53030; }
+
+    /* メインエリア */
+    .main-container { display: flex; flex: 1; padding: 12px; gap: 12px; min-height: 0; }
+
+    /* === 左パネル === */
+    .left-panel { 
+        flex: 1; background: var(--panel-bg); border-radius: 6px; 
+        padding: 16px; display: flex; flex-direction: column; 
+        border: 1px solid var(--border-color);
+    }
+    
+    .panel-header {
+        display: flex; justify-content: space-between; align-items: flex-end;
+        margin-bottom: 8px; padding-bottom: 8px; border-bottom: 2px solid #E2E8F0;
+    }
+    .panel-title { font-weight: 800; font-size: 14px; }
+    .total-prob { font-size: 12px; font-weight: 700; color: var(--text-sub); }
+
+    /* グリッド定義 */
+    .items-grid { 
+        display: grid; 
+        grid-template-columns: 40px 1fr 80px 50px 40px; 
+        gap: 8px; align-items: center; justify-items: center; 
+    }
+    
+    .column-labels { 
+        padding-right: 8px; margin-bottom: 8px; 
+        font-size: 11px; font-weight: 700; color: var(--text-sub); 
+        border-bottom: 1px solid #EEE; padding-bottom: 4px;
         text-align: center;
     }
 
-    /* ▼▼▼ 修正2: ヘッダーの余白設定 (計算しなおしました) ▼▼▼ */
-    /* 下のリストの条件（カード内余白12px + コンテナ余白8px + スクロールバー約17px）に合わせます */
-    .column-labels { 
-        /* 右余白を 37px に設定すると、Windowsの標準的なスクロールバー幅と合致します */
-        padding: 8px 32px 8px 12px;
-        background: transparent; 
-        margin-bottom: 8px; 
-        flex-shrink: 0; 
-        min-height: 44px;
-        /* align-items: flex-end; ← これは削除（gridのalign-itemsを使うため） */
-    }
-    
-    .column-label { 
-        font-size: 12px; 
-        font-weight: 700; 
-        color: #7A6A62; 
-        text-align: center; 
-        display: flex; 
-        align-items: center; 
-        justify-content: center; 
-        gap: 4px; 
-        padding-bottom: 4px; /* 下に少し余白 */
-    }
-    
-    /* 縦積み用 (英字列など) */
-    .column-label.stacked {
-        flex-direction: column;
-        justify-content: flex-end;
-        gap: 2px;
-        line-height: 1.1;
-        padding-bottom: 0; /* チェックボックスがあるので調整 */
-    }
-
-    /* 「改行可」を目立たせるバッジ */
-    .badge-note {
-        font-size: 10px;
-        background: #E8DFD6;
-        color: #7A6A62;
-        padding: 3px 6px;
-        border-radius: 6px;
-        margin-left: 6px;
-        border: 1px solid #D9D2C9;
-        display: inline-block;
-        transform: translateY(-1px); /* 微調整 */
-    }
-    /* ▲▲▲ 変更 ▲▲▲ */
-
-    .column-label.text-left { justify-content: flex-start; padding-left: 12px; }
-
-    /* ▼▼▼ 修正3: スクロールバーを常に表示して「ガタつき」をなくす ▼▼▼ */
     .items-container { 
-        display: flex; 
-        flex-direction: column; 
-        gap: 8px; 
-        
-        /* 項目が少なくても常にスクロールバーの領域を確保する（これでズレなくなります） */
-        overflow-y: scroll; 
-        
-        flex: 1; 
-        padding-right: 8px; 
+        flex: 1; overflow-y: scroll; display: flex; flex-direction: column; gap: 6px; 
+        padding-right: 4px; padding-bottom: 10px;
     }
-    .item-card { background: #F9F5F0; border: none; border-radius: 12px; padding: 12px; align-items: center; transition: all 0.3s ease; box-shadow: 6px 6px 12px rgba(217, 210, 201, 0.6), -6px -6px 12px rgba(255, 255, 255, 0.9); }
-    .item-card:hover { box-shadow: 8px 8px 16px rgba(217, 210, 201, 0.6), -8px -8px 16px rgba(255, 255, 255, 0.9); transform: translateY(-1px); }
-    .item-index { width: 36px; height: 36px; background: #F3EBE0; color: #7A6A62; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; box-shadow: inset 2px 2px 4px rgba(217, 210, 201, 0.7), inset -2px -2px 4px rgba(255, 255, 255, 0.9); }
-    
-    .item-name-input, .prob-input { 
-        padding: 10px 12px; 
-        border: none; 
-        border-radius: 8px; 
-        font-size: 14px; 
-        font-weight: 500; 
-        transition: all 0.3s ease; 
-        width: 100%; 
-        background: #F9F5F0; 
-        box-shadow: inset 3px 3px 6px rgba(217, 210, 201, 0.7), inset -3px -3px 6px rgba(255, 255, 255, 0.9); 
-        font-family: inherit;
+
+    .item-card { 
+        background: #F7FAFC; border-radius: 4px; padding: 6px 0; 
+        border: 1px solid #EDF2F7; transition: border-color 0.2s;
     }
-    textarea.item-name-input { resize: vertical; min-height: 44px; line-height: 1.4; overflow: hidden; }
+    .item-card:hover { border-color: #CBD5E0; }
 
-    .item-name-input:focus, .prob-input:focus { outline: none; }
-    .prob-display { text-align: center; font-weight: 700; font-size: 16px; color: #6BAAC0; padding: 8px; }
-    .prob-input { text-align: center; }
-    .prob-input:placeholder-shown { color: #6BAAC0; font-style: italic; font-weight: bold; }
-
-    .delete-btn-wrapper { display: flex; justify-content: center; }
-    .delete-btn { width: 40px; height: 40px; background: transparent; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s ease; }
-    .delete-btn:hover { background: #F3EBE0; }
-    .btn { width: 100%; padding: 12px; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; color: white; cursor: pointer; transition: all 0.3s ease; margin-top: 12px; box-shadow: 8px 8px 16px rgba(217, 210, 201, 0.6), -8px -8px 16px rgba(255, 255, 255, 0.9); }
-    .btn:active { box-shadow: inset 4px 4px 8px rgba(217, 210, 201, 0.7), inset -4px -4px 8px rgba(255, 255, 255, 0.9); transform: translateY(2px); }
-    .btn-primary { background: #A1D8D4; }
-    .btn-secondary { background: #6BAAC0; }
-    .btn-danger { background: #F4A98B; }
-    .checkbox-group { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
-    .checkbox-label { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px; border-radius: 8px; transition: all 0.3s ease; }
-    .checkbox-label:hover { background: #F3EBE0; }
-    .checkbox-label input[type="checkbox"] { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 5px; background: #F9F5F0; box-shadow: inset 2px 2px 4px rgba(217, 210, 201, 0.7), inset -2px -2px 4px rgba(255, 255, 255, 0.9); cursor: pointer; position: relative; }
-    .checkbox-label input[type="checkbox"]:checked { background: #A1D8D4; box-shadow: 4px 4px 8px rgba(217, 210, 201, 0.6), -4px -4px 8px rgba(255, 255, 255, 0.9); }
-    .checkbox-label span { font-size: 14px; font-weight: 500; color: #5A4A42; }
-    .tooltip { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; background: #E0D9D2; color: white; border-radius: 50%; text-align: center; font-size: 12px; font-weight: 700; cursor: help; transition: all 0.3s ease; flex-shrink: 0; }
-    .tooltip:hover { background: #6BAAC0; transform: scale(1.1); }
-    .tooltip::before { content: attr(data-tooltip); position: absolute; bottom: 130%; right: 0; background: #5A4A42; color: white; padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; line-height: 1.5; width: 280px; text-align: left; white-space: normal; opacity: 0; visibility: hidden; transition: all 0.3s ease; z-index: 100; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); pointer-events: none; }
-    .tooltip::after { content: ''; position: absolute; bottom: 130%; right: 10px; margin-bottom: -8px; border-width: 8px; border-style: solid; border-color: #5A4A42 transparent transparent transparent; opacity: 0; visibility: hidden; transition: all 0.3s ease; z-index: 100; }
-    .tooltip:hover::before, .tooltip:hover::after { opacity: 1; visibility: visible; }
-    .tooltip.tooltip-on-left::before { bottom: 50%; top: auto; right: 120%; left: auto; transform: translateY(50%); }
-    .tooltip.tooltip-on-left::after { bottom: 50%; top: auto; right: 100%; left: auto; margin-bottom: 0; margin-right: -8px; transform: translateY(50%); border-color: transparent transparent transparent #5A4A42; }
-    ::-webkit-scrollbar { width: 12px; }
-    ::-webkit-scrollbar-track { background: #F3EBE0; border-radius: 10px; }
-    ::-webkit-scrollbar-thumb { background: #E0D9D2; border-radius: 10px; border: 3px solid #F3EBE0; }
-    ::-webkit-scrollbar-thumb:hover { background: #D1C8BF; }
-    #save-status { margin-top: 12px; padding: 12px; border-radius: 10px; font-weight: 600; text-align: center; display: none; }
-    #save-status.success { background: #d4edda; color: #155724; display: block; }
-    #save-status.error { background: #f8d7da; color: #721c24; display: block; }
+    .item-index { font-weight: 700; color: #718096; font-size: 12px; }
     
-    #theme-select { width: 100%; padding: 12px; border: none; border-radius: 10px; font-size: 14px; font-weight: 500; background: #F9F5F0; cursor: pointer; transition: all 0.3s ease; box-shadow: inset 3px 3px 6px rgba(217, 210, 201, 0.7), inset -3px -3px 6px rgba(255, 255, 255, 0.9); }
+    .item-name-input { 
+        justify-self: stretch; resize: none; min-height: 32px; line-height: 1.4; padding: 5px 8px; 
+        border: 1px solid #CBD5E0; border-radius: 4px;
+        font-size: 13px; color: var(--text-main); overflow: hidden;
+    }
+    .item-name-input:focus { border-color: var(--accent-primary); background: #FFF; }
+
+    .prob-input { 
+        width: 100%; padding: 6px; border: 1px solid #CBD5E0; border-radius: 4px;
+        font-size: 13px; text-align: center; color: var(--text-main);
+    }
+    .prob-input.is-auto { background: #EDF2F7; color: #718096; border-style: dashed; }
+    
+    .delete-btn { 
+        background: transparent; border: none; color: #A0AEC0; 
+        font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    .delete-btn:hover { color: var(--accent-danger); }
+
+    #add-item-btn {
+        margin-top: 10px; width: 100%; padding: 8px; 
+        border: 1px dashed var(--border-color); border-radius: 4px; background: #F7FAFC;
+        color: var(--text-sub); font-weight: 700; cursor: pointer;
+    }
+    #add-item-btn:hover { border-color: var(--accent-primary); color: var(--accent-primary); background: #ebf8ff; }
+
+    /* === 右パネル === */
+    .right-panel { width: 300px; display: flex; flex-direction: column; gap: 12px; flex-shrink: 0; }
+
+    .settings-card {
+        background: var(--panel-bg); border-radius: 6px; 
+        padding: 16px; display: flex; flex-direction: column; gap: 12px;
+        border: 1px solid var(--border-color);
+    }
+    .card-title { 
+        font-size: 12px; font-weight: 800; color: var(--text-sub); 
+        border-bottom: 1px solid #E2E8F0; padding-bottom: 6px; margin-bottom: -4px;
+    }
+
+    .setting-row { 
+        display: flex; align-items: center; justify-content: space-between; 
+        font-weight: 600; color: var(--text-main); font-size: 13px;
+    }
+    
+    select.setting-input {
+        width: 100%; padding: 6px; background: #FFF;
+        border: 1px solid #CBD5E0; border-radius: 4px; font-weight: 600; color: var(--text-main);
+        cursor: pointer;
+    }
+
+    /* ミュージック設定 */
+    #music-settings-area {
+        background: #EDF2F7; border-radius: 4px; padding: 10px;
+        display: none; flex-direction: column; gap: 10px;
+        border: 1px solid #E2E8F0;
+    }
+    #music-settings-area.visible { display: flex; }
+
+    .file-select-container { display: flex; gap: 6px; }
+    .file-path-display {
+        flex: 1; background: #FFF; border: 1px solid #CBD5E0; 
+        padding: 4px 8px; border-radius: 3px; font-size: 11px; color: var(--text-sub);
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    /* エラー時のスタイル */
+    .file-path-display.error { border-color: #C53030; background: #FFF5F5; color: #C53030; }
+
+    .btn-browse {
+        background: #E2E8F0; border: 1px solid #CBD5E0; padding: 4px 10px; border-radius: 3px;
+        font-size: 11px; font-weight: 700; color: var(--text-main); cursor: pointer;
+    }
+    
+    .action-area { display: flex; gap: 10px; margin-top: auto; }
+    .btn-action { 
+        flex: 1; padding: 12px; border: none; border-radius: 6px; 
+        font-size: 14px; font-weight: 800; color: white; cursor: pointer; 
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .btn-action:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-save { background: var(--accent-warning); }
+    .btn-run { background: var(--accent-primary); }
+
+    #save-status { 
+        text-align: center; font-size: 12px; height: 20px; line-height: 20px; 
+        font-weight: 700; margin-top: 4px; color: var(--text-main);
+    }
+    
+    .badge { 
+        font-size: 10px; background: #EDF2F7; padding: 2px 5px; 
+        border-radius: 3px; color: var(--text-sub); border: 1px solid #CBD5E0;
+        margin-left: 4px; vertical-align: middle;
+    }
+
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #CBD5E0; border-radius: 4px; }
 </style>
 </head>
 <body>
 
 <div class="app-container">
     <div class="header">
-        <h1 class="header-title">🎡 ルーレット設定</h1>
+        <div class="header-title">🎡 Roulette Config</div>
+        
         <div class="profile-manager">
-            <label for="profile-select">プロファイル:</label>
+            <span class="profile-label-text">保存設定:</span>
             <select id="profile-select"></select>
-            <button class="btn-profile btn-new">新規</button>
-            <button class="btn-profile btn-rename">名前変更</button>
-            <button class="btn-profile btn-delete">削除</button>
+            
+            <button class="btn-profile btn-new" title="新規作成">＋新規</button>
+            <button class="btn-profile btn-rename" title="名前変更">✎名前変更</button>
+            <button class="btn-profile btn-delete" title="削除">🗑削除</button>
+
+            <button id="open-folder-btn" class="btn-profile" title="保存場所を開く" style="margin-left:8px; color:#2B6CB0;">
+                📂
+            </button>
         </div>
     </div>
 
     <div class="main-container">
         <div class="left-panel">
-            <div class="section-header">
-                <h2 class="section-title" id="items-header">📝 項目の設定</h2>
-                <div class="total-prob" id="total-prob-display">合計: 100%</div>
+            <div class="panel-header">
+                <span class="panel-title">項目リスト</span>
+                <span id="total-prob-display" class="total-prob">合計: 100%</span>
             </div>
-            
+
             <div class="column-labels items-grid">
-                <div class="column-label"></div>
-                <div class="column-label text-left">
-                    項目名 <span class="badge-note">改行可</span>
+                <div>No.</div>
+                <div>項目名 <span class="badge">自動改行</span></div>
+                <div>確率(%)</div>
+                <div style="display:flex; flex-direction:column; align-items:center;">
+                    <span style="font-size:10px;">横書き</span>
+                    <input type="checkbox" id="select-all-horizontal">
                 </div>
-                <div class="column-label">確率 (%)<span class="tooltip" data-tooltip="数字を入れると固定されます。空欄にすると、残りの確率を他の空欄項目と自動的に分け合います。合計は必ず100%になります。">?</span></div>
-                
-                <div class="column-label stacked">
-                    <span>英字</span>
-                    <label class="checkbox-label" style="padding:0; min-height:auto;">
-                        <input type="checkbox" id="select-all-horizontal">
-                    </label>
-                </div>
-                <div class="column-label"></div>
+                <div>削除</div>
             </div>
             
-            <div class="items-container" id="items-list-container">
-            </div>
-            <button id="add-item-btn" class="btn btn-primary" style="flex-shrink: 0; margin-top: 16px;">➕ 項目を追加</button>
+            <div class="items-container" id="items-list-container"></div>
+            <button id="add-item-btn">＋ 項目を追加</button>
         </div>
 
         <div class="right-panel">
-            <div class="card">
-                <h2>🎨 テーマ選択</h2>
-                <select id="theme-select" style="margin-top: 12px;"></select>
-            </div>
-            <div class="card">
-                <h2>⚙️ その他設定</h2>
-                <div class="checkbox-group">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="fake-enabled">
-                        <span>フェイク演出を有効にする</span>
-                        <span class="tooltip tooltip-on-left" style="margin-left: auto;" 
-                              data-tooltip="当選結果を一度通り過ぎてから戻ってくる、ドキドキの演出です。この演出は33%の確率で発生します。">?</span>
-                    </label>
+            <div class="settings-card">
+                <div class="card-title">共通設定</div>
+                <div class="setting-row">
+                    <span style="white-space:nowrap; margin-right:10px;">テーマ</span>
+                    <select id="theme-select" class="setting-input" style="flex:1;"></select>
+                </div>
+                <div class="setting-row">
+                    <label for="mute-enabled" style="cursor:pointer; display:flex; gap:6px;"><span>🔇</span> 無音モード</label>
+                    <input type="checkbox" id="mute-enabled">
+                </div>
+                <div class="setting-row">
+                    <label for="fake-enabled" style="cursor:pointer; display:flex; gap:6px;"><span>😈</span> フェイク演出</label>
+                    <input type="checkbox" id="fake-enabled">
                 </div>
             </div>
-            <div class="card">
-                <h2>💾 保存 / 実行</h2>
-                <button id="save-btn" class="btn btn-danger">設定を保存</button>
-                <div id="save-status"></div>
-                <button id="open-roulette-btn" class="btn btn-secondary">🎡 ルーレットを実行/更新</button>
+
+            <div class="settings-card">
+                <div class="card-title">演出モード</div>
+                <select id="spin-mode-select" class="setting-input">
+                    <option value="suspense">💓 ドキドキ (心臓音)</option>
+                    <option value="music">🎵 ミュージック (BGM)</option>
+                </select>
+
+                <div id="music-settings-area">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:11px; font-weight:700;">BGM設定</span>
+                        <button id="bgm-reset-btn" style="font-size:10px; background:none; border:none; color:#C05621; cursor:pointer; text-decoration:underline;">リセット</button>
+                    </div>
+                    <div class="file-select-container">
+                        <input type="text" id="bgm-path-display" class="file-path-display" placeholder="BGMファイルを選択してください" readonly>
+                        <button id="bgm-select-btn" class="btn-browse">参照</button>
+                    </div>
+                    <div id="bgm-warning" style="display:none; color:#C53030; font-size:10px; font-weight:bold;">⚠️ BGMファイルが未設定です</div>
+
+                    <div style="margin-top:6px;">
+                        <div class="setting-row" style="margin-bottom:4px;">
+                            <span style="font-size:11px;">回転時間</span>
+                            <span id="duration-text" style="font-size:12px; font-weight:800; color:#2B6CB0;">8.0秒</span>
+                        </div>
+                        <input type="range" id="spin-duration-slider" min="3.0" max="30.0" step="0.1" value="8.0" style="width:100%;">
+                    </div>
+                </div>
             </div>
+
+            <div class="action-area">
+                <button id="save-btn" class="btn-action btn-save">保存</button>
+                <button id="open-roulette-btn" class="btn-action btn-run">ルーレット起動</button>
+            </div>
+            <div id="save-status"></div>
         </div>
     </div>
 </div>
@@ -249,17 +325,10 @@
 <template id="item-template">
     <div class="item-card items-grid" data-index="0">
         <div class="item-index">1</div>
-        <textarea class="item-name-input" placeholder="項目名 (必須)" rows="1"></textarea>
-        <input type="number" placeholder="Auto" class="prob-input prob-manual-input" min="0" max="100" step="0.1">
-        
-        <div style="display:flex; align-items:center; justify-content:center;">
-            <label class="checkbox-label" style="padding:0;">
-                <input type="checkbox" class="horizontal-input">
-            </label>
-        </div>
-        <div class="delete-btn-wrapper">
-            <button class="delete-btn">🗑️</button>
-        </div>
+        <textarea class="item-name-input" placeholder="項目名" rows="1"></textarea>
+        <input type="number" class="prob-input prob-manual-input" placeholder="Auto" min="0" max="100" step="0.1">
+        <input type="checkbox" class="horizontal-input">
+        <button class="delete-btn" title="削除">×</button>
     </div>
 </template>
 
