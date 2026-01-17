@@ -1,45 +1,116 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <title>項目リスト</title>
-    <style>
-        body { 
-            font-family: sans-serif; margin: 0; padding: 10px; 
-            background: #fff; color: #333; overflow-y: auto; 
-        }
-        .item-row {
-            display: flex; align-items: center; padding: 4px 0;
-            border-bottom: 1px solid #eee; font-weight: bold;
-        }
-        .item-num { 
-            width: 30px; color: #666; font-size: 0.9em; text-align: right; margin-right: 10px; 
-        }
-        .item-name { flex: 1; word-break: break-all; }
-        /* OBSで背景を抜きたい場合用 */
-        body.transparent { background: rgba(0,0,0,0); color: white; text-shadow: 1px 1px 2px black; }
-    </style>
+<meta charset="UTF-8">
+<title>項目リスト</title>
+<style>
+    body {
+        font-family: "Helvetica Neue", Arial, sans-serif;
+        background-color: #ffffff;
+        margin: 0; padding: 0;
+        overflow-y: auto;
+    }
+    .header {
+        background: #f7f7f7; padding: 10px;
+        font-weight: bold; font-size: 14px; color: #555;
+        border-bottom: 2px solid #ddd;
+        position: sticky; top: 0; z-index: 10;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .list-container { padding: 10px; }
+
+    .item-row {
+        display: flex; align-items: center;
+        padding: 8px 10px;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 15px;
+        transition: all 0.3s ease; /* アニメーション用 */
+        border-radius: 4px;
+    }
+
+    /* ▼▼▼ マスの色を表示するドット ▼▼▼ */
+    .color-dot {
+        width: 12px; height: 12px;
+        border-radius: 50%; /* 丸くする */
+        margin-right: 8px;
+        border: 1px solid rgba(0,0,0,0.1);
+        flex-shrink: 0;
+    }
+
+    .item-num {
+        font-weight: bold; color: #888;
+        width: 25px; text-align: right; margin-right: 10px;
+        font-size: 0.9em; flex-shrink: 0;
+    }
+    .item-name {
+        word-break: break-all; color: #333; font-weight: 500;
+    }
+
+    /* ▼▼▼ 当選時のハイライト演出 ▼▼▼ */
+    .winner-row {
+        background-color: #FFF7CD !important; /* 薄い黄色 */
+        border: 2px solid #FFD700; /* 金色の枠 */
+        box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        transform: scale(1.02);
+        font-weight: bold;
+    }
+    .winner-row .item-num { color: #d35400; }
+
+    /* クロマキー用 */
+    body.chroma-key { background-color: #00FF00; }
+</style>
 </head>
 <body>
-    <div id="list-container">待機中...</div>
+    <div class="header">エントリーリスト</div>
+    <div class="list-container" id="list">
+        <div style="padding:10px; color:#aaa; font-size:12px;">待機中...</div>
+    </div>
 
     <script>
-        // メインプロセスからの更新を受け取る
-        // (Preload.jsは既存のものを流用可能と仮定)
-        if (window.electronAPI) {
-            window.electronAPI.on('update-legend', (data) => {
-                const container = document.getElementById('list-container');
-                if (!data || !data.items) return;
+        let currentItems = [];
 
+        if (window.electronAPI) {
+            // 1. リスト更新
+            window.electronAPI.on('update-legend', (data) => {
+                const list = document.getElementById('list');
+                if (!data || !data.items || data.items.length === 0) {
+                    list.innerHTML = '<div style="padding:10px; color:#aaa;">項目がありません</div>';
+                    return;
+                }
+
+                currentItems = data.items;
                 let html = '';
+                
+                // アイテムごとにHTML生成
                 data.items.forEach((item, index) => {
+                    // 色情報があれば反映、なければグレー
+                    const color = item.color || '#ccc';
+                    
                     html += `
-                        <div class="item-row">
-                            <span class="item-num">${index + 1}.</span>
+                        <div class="item-row" id="row-${index}">
+                            <div class="color-dot" style="background-color: ${color};"></div>
+                            <span class="item-num">${index + 1}</span>
                             <span class="item-name">${item.name}</span>
-                        </div>`;
+                        </div>
+                    `;
                 });
-                container.innerHTML = html;
+                list.innerHTML = html;
+            });
+
+            // 2. 当選ハイライト受信
+            window.electronAPI.on('highlight-winner', (index) => {
+                // まず全てのハイライトを消す
+                document.querySelectorAll('.item-row').forEach(row => {
+                    row.classList.remove('winner-row');
+                });
+
+                // 指定された行を光らせる
+                const targetRow = document.getElementById(`row-${index}`);
+                if (targetRow) {
+                    targetRow.classList.add('winner-row');
+                    // 自動でその場所までスクロール
+                    targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
             });
         }
     </script>

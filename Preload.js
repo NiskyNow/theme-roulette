@@ -9,8 +9,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   
   // main.js に 'load-data' や 'save-data' などを送信
   send: (channel, data) => {
-    // (v1.3.5) チャンネル名を変更
-    const validChannels = ['load-data', 'save-data', 'run-or-update-roulette'];
+    // ▼ 'sync-legend-colors' を追加してください
+    const validChannels = ['load-data', 'save-data', 'run-or-update-roulette', 'roulette-finished', 'sync-legend-colors'];
     if (validChannels.includes(channel)) {
       ipcRenderer.send(channel, data);
     }
@@ -28,7 +28,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   
   // main.js から 'data-loaded' や 'data-saved' を受信
   on: (channel, callback) => {
-    const validChannels = ['data-loaded', 'data-saved', 'data-save-error', 'update-legend'];
+    // ▼ 'highlight-winner' を追加
+    const validChannels = ['data-loaded', 'data-saved', 'data-save-error', 'update-legend', 'highlight-winner'];
     if (validChannels.includes(channel)) {
       // (event を除外し、data のみコールバックに渡す)
       ipcRenderer.on(channel, (event, ...args) => callback(...args)); 

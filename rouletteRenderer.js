@@ -262,33 +262,34 @@ function initializeApp() {
         },
 
         adjustLayout() {
-            const wrapper = document.querySelector('.roulette-wrapper');
-            const result = document.getElementById('result');
-            
-            if (wrapper && result) {
-                const top = wrapper.offsetTop;
-                const height = wrapper.offsetHeight;
-                const visualBottom = top + (height / 2);
-                const targetTop = visualBottom + 50;
-                
-                result.style.position = 'absolute';
-                result.style.top = `${targetTop}px`;
-                result.style.left = '50%';
-                result.style.transform = 'translateX(-50%)';
-                result.style.margin = '0';
-                result.style.width = '100%';
-                result.style.textAlign = 'center';
-                
-                // ▼▼▼ 修正: 結果表示は徹底的に操作無効化 ▼▼▼
-                result.style.userSelect = 'none';
-                result.style.webkitUserSelect = 'none'; // Chrome系
-                result.style.pointerEvents = 'none';    // クリック透過
-                // ▲▲▲ ▲▲▲
-                
-                if (this.legend) {
-                    this.legend.style.top = `${targetTop}px`;
-                }
-            }
+            // ▼▼▼ 修正: master.html の flex-direction: column 化に伴い、自動計算を無効化 ▼▼▼
+            // const wrapper = document.querySelector('.roulette-wrapper');
+            // const result = document.getElementById('result');
+            // 
+            // if (wrapper && result) {
+            //     const top = wrapper.offsetTop;
+            //     const height = wrapper.offsetHeight;
+            //     const visualBottom = top + (height / 2);
+            //     const targetTop = visualBottom + 50;
+            //     
+            //     result.style.position = 'absolute';
+            //     result.style.top = `${targetTop}px`;
+            //     result.style.left = '50%';
+            //     result.style.transform = 'translateX(-50%)';
+            //     result.style.margin = '0';
+            //     result.style.width = '100%';
+            //     result.style.textAlign = 'center';
+            //     
+            //     // ▼▼▼ 修正: 結果表示は徹底的に操作無効化 ▼▼▼
+            //     result.style.userSelect = 'none';
+            //     result.style.webkitUserSelect = 'none'; // Chrome系
+            //     result.style.pointerEvents = 'none';    // クリック透過
+            //     // ▲▲▲ ▲▲▲
+            //     
+            //     if (this.legend) {
+            //         this.legend.style.top = `${targetTop}px`;
+            //     }
+            // }
         },
 
         renderRoulette(items, colors, profile) {
@@ -460,7 +461,22 @@ function initializeApp() {
         calculateAngles();
         UI.renderRoulette(State.processedItems, State.colors, profile);
         UI.setResult('Ready');
+
+        // ▼▼▼ 修正：凡例への色同期を関数化して呼び出し ▼▼▼
+        setTimeout(sendColorsToLegend, 500);
     });
+
+    function sendColorsToLegend() {
+        const itemsToSend = State.items.map((item, index) => {
+            const color = State.colors[index % State.colors.length];
+            return {
+                name: item.name,
+                weight: item.weight,
+                color: color
+            };
+        });
+        window.electronAPI.send('sync-legend-colors', itemsToSend);
+    }
 
     function generateColors(count, profile) {
         const list = profile && profile.colors ? profile.colors : ['#888'];
@@ -553,6 +569,24 @@ function initializeApp() {
         UI.enableBtn(true);
         UI.setResult(winnerName);
         Sound.play('result');
+
+        // ▼▼▼ 追加：当選インデックスを計算して通知する ▼▼▼
+        // 1. 角度からインデックスを逆算する
+        const normalizedRot = finalRot % 360; 
+        
+        // このレンダラーでは 0度が真上(Top)のため、補正値は 0 となります
+        const pointerAngle = (360 - normalizedRot) % 360; 
+        
+        // すでに計算済みの角度データ（State.processedItems）から当選項目を探す
+        const winner = State.processedItems.find(item => 
+            pointerAngle >= item.startAngle && pointerAngle < item.endAngle
+        );
+
+        // メインプロセスへ送信
+        if (winner) {
+            window.electronAPI.send('roulette-finished', winner.index);
+        }
+        // ▲▲▲ 追加ここまで ▲▲▲
     }
 
     // ▼▼▼ 修正: グローバルな右クリックメニューは「禁止（なにもしない）」 ▼▼▼

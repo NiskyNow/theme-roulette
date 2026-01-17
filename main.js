@@ -489,3 +489,23 @@ ipcMain.handle('open-save-folder', async () => {
     const folderPath = app.getPath('userData'); 
     await shell.openPath(folderPath);
 });
+
+// (I) ルーレット終了時の処理
+// ▼▼▼ 追加：ルーレット終了通知を中継 ▼▼▼
+ipcMain.on('roulette-finished', (event, index) => {
+    // 凡例ウィンドウが存在すれば、そこに転送する
+    if (legendWindow && !legendWindow.isDestroyed()) {
+        legendWindow.webContents.send('highlight-winner', index);
+        // 必要ならウィンドウを前面に出す（配信的に邪魔ならコメントアウト）
+        // legendWindow.show(); 
+    }
+});
+
+// ▼▼▼ 追加：色同期の中継処理 ▼▼▼
+ipcMain.on('sync-legend-colors', (event, itemsWithColors) => {
+    // 凡例ウィンドウが開いていれば、新しいリスト（色付き）を送る
+    if (legendWindow && !legendWindow.isDestroyed()) {
+        // legend.html 側は 'update-legend' で受け取る作りになっているので、そのまま送ります
+        legendWindow.webContents.send('update-legend', { items: itemsWithColors });
+    }
+});
