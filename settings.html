@@ -145,12 +145,24 @@
     }
     .delete-btn:hover { color: var(--accent-danger); }
 
+    /* 追加・まとめてボタンエリア */
+    .add-buttons-container {
+        display: flex; gap: 10px; margin-top: 10px;
+    }
+
     #add-item-btn {
-        margin-top: 10px; width: 100%; padding: 8px; 
+        flex: 1; padding: 8px; 
         border: 1px dashed var(--border-color); border-radius: 4px; background: #F7FAFC;
         color: var(--text-sub); font-weight: 700; cursor: pointer;
     }
     #add-item-btn:hover { border-color: var(--accent-primary); color: var(--accent-primary); background: #ebf8ff; }
+
+    #bulk-input-btn {
+        width: 110px; padding: 8px; 
+        border: 1px solid var(--border-color); border-radius: 4px; background: #FFF;
+        color: var(--text-main); font-weight: 700; cursor: pointer;
+    }
+    #bulk-input-btn:hover { background: #EDF2F7; border-color: #CBD5E0; }
 
     /* === 右パネル === */
     .right-panel { width: 300px; display: flex; flex-direction: column; gap: 12px; flex-shrink: 0; }
@@ -222,6 +234,42 @@
     ::-webkit-scrollbar { width: 8px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #CBD5E0; border-radius: 4px; }
+
+    /* === 追加：まとめて入力用モーダル === */
+    .modal-overlay {
+        display: none; /* デフォルト非表示 */
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 2000;
+        justify-content: center;
+        align-items: center;
+    }
+    .modal-overlay.visible { display: flex; }
+    
+    .modal-box {
+        background: #fff; padding: 20px; border-radius: 6px; width: 400px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; flex-direction: column; gap: 10px;
+    }
+    
+    .modal-header { font-weight: 800; font-size: 14px; border-bottom: 1px solid #eee; padding-bottom: 8px; color: var(--text-main); }
+    
+    .modal-textarea {
+        width: 100%; height: 200px; padding: 10px; border: 1px solid #CBD5E0; border-radius: 4px;
+        resize: vertical; font-family: inherit; font-size: 13px; line-height: 1.5;
+    }
+    .modal-textarea:focus { border-color: var(--accent-primary); }
+    
+    .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 5px; }
+    
+    .btn-modal { 
+        padding: 8px 16px; border-radius: 4px; cursor: pointer; border: 1px solid #CBD5E0; 
+        background: #fff; font-weight: 700; color: var(--text-sub); font-size: 12px;
+    }
+    .btn-modal:hover { background: #EDF2F7; }
+    
+    .btn-modal.primary { background: var(--accent-primary); color: white; border: none; }
+    .btn-modal.primary:hover { opacity: 0.9; }
+
 </style>
 </head>
 <body>
@@ -263,7 +311,12 @@
             </div>
             
             <div class="items-container" id="items-list-container"></div>
-            <button id="add-item-btn">＋ 項目を追加</button>
+            
+            <div class="add-buttons-container">
+                <button id="add-item-btn">＋ 項目を追加</button>
+                <button id="bulk-input-btn">📋 まとめて入力</button>
+            </div>
+            
         </div>
 
         <div class="right-panel">
@@ -316,6 +369,17 @@
                 <button id="open-roulette-btn" class="btn-action btn-run">ルーレット起動</button>
             </div>
             <div id="save-status"></div>
+        </div>
+    </div>
+</div>
+
+<div id="bulk-modal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">まとめて入力 (改行区切り)</div>
+        <textarea id="bulk-textarea" class="modal-textarea" placeholder="りんご&#10;ごりら&#10;らっぱ&#10;&#10;※改行ごとに新しい項目として追加されます"></textarea>
+        <div class="modal-footer">
+            <button id="bulk-cancel-btn" class="btn-modal">キャンセル</button>
+            <button id="bulk-confirm-btn" class="btn-modal primary">追加する</button>
         </div>
     </div>
 </div>

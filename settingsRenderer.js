@@ -46,7 +46,14 @@ window.onload = async () => {
     dom.openFolderBtn = document.getElementById('open-folder-btn');
     dom.runBtn = document.getElementById('open-roulette-btn');
 
-    // ▼▼▼ 追加: フォルダボタンのクリックイベント ▼▼▼
+    // ▼▼▼ まとめて入力用要素の取得 ▼▼▼
+    dom.bulkBtn = document.getElementById('bulk-input-btn');
+    dom.bulkModal = document.getElementById('bulk-modal');
+    dom.bulkTextarea = document.getElementById('bulk-textarea');
+    dom.bulkConfirm = document.getElementById('bulk-confirm-btn');
+    dom.bulkCancel = document.getElementById('bulk-cancel-btn');
+
+    // フォルダボタンのクリックイベント
     dom.openFolderBtn.addEventListener('click', () => {
         api.openSaveFolder();
     });
@@ -88,6 +95,30 @@ function setupEventListeners() {
         actions.addItem();
         render(); 
     });
+
+    // ▼▼▼ まとめて入力機能のイベント ▼▼▼
+    if (dom.bulkBtn) {
+        dom.bulkBtn.addEventListener('click', () => {
+            // モーダルを開く
+            dom.bulkTextarea.value = '';
+            dom.bulkModal.classList.add('visible');
+            dom.bulkTextarea.focus();
+        });
+    }
+    if (dom.bulkCancel) {
+        dom.bulkCancel.addEventListener('click', () => {
+            // モーダルを閉じる
+            dom.bulkModal.classList.remove('visible');
+        });
+    }
+    if (dom.bulkConfirm) {
+        dom.bulkConfirm.addEventListener('click', () => {
+            // 追加実行
+            actions.addBulkItems(dom.bulkTextarea.value);
+            dom.bulkModal.classList.remove('visible');
+        });
+    }
+    // ▲▲▲ 追加ここまで ▲▲▲
 
     // 設定変更イベント
     dom.fakeEnabled.addEventListener('change', (e) => actions.updateSettings('fakeEnabled', e.target.checked));
@@ -243,6 +274,30 @@ const actions = {
         if (!profile) return;
         profile.items.push({ name: "新規項目", weight: null, isAuto: true, isHorizontal: false });
     },
+
+    // ▼▼▼ 追加：まとめて追加ロジック ▼▼▼
+    addBulkItems(text) {
+        if (!text) return;
+        // 改行で分割し、空白行を除去
+        const lines = text.split(/\r\n|\n|\r/).filter(line => line.trim() !== "");
+        
+        if (lines.length === 0) return;
+        
+        const profile = state.currentProfile;
+        if (!profile) return;
+
+        lines.forEach(line => {
+            profile.items.push({ 
+                name: line.trim(), 
+                weight: null, 
+                isAuto: true, 
+                isHorizontal: false 
+            });
+        });
+        render(); // 再描画
+        showSaveStatus(`${lines.length}個の項目を追加しました（未保存）`, '#2B6CB0', 3000);
+    },
+    // ▲▲▲ 追加ここまで ▲▲▲
     
     updateItem(index, key, value) {
         const profile = state.currentProfile;
@@ -290,7 +345,6 @@ const actions = {
         }
     },
     
-    // ... (削除・新規作成などのメソッドは以前と同じ) ...
     handleDeleteClick(index) {
         const profile = state.currentProfile;
         if (!profile || !profile.items[index]) return;

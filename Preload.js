@@ -28,7 +28,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   
   // main.js から 'data-loaded' や 'data-saved' を受信
   on: (channel, callback) => {
-    const validChannels = ['data-loaded', 'data-saved', 'data-save-error'];
+    const validChannels = ['data-loaded', 'data-saved', 'data-save-error', 'update-legend'];
     if (validChannels.includes(channel)) {
       // (event を除外し、data のみコールバックに渡す)
       ipcRenderer.on(channel, (event, ...args) => callback(...args)); 

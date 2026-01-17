@@ -36,6 +36,7 @@ const store = new Store.default({
 
 let settingsWindow;
 let rouletteWindow;
+let legendWindow = null;
 
 let currentRouletteTheme = null;
 let currentRouletteProfileId = null; 
@@ -117,6 +118,27 @@ async function createRouletteWindow(profile) {
     currentRouletteTheme = null;
     currentRouletteProfileId = null;
   });
+}
+
+function createLegendWindow() {
+    if (legendWindow && !legendWindow.isDestroyed()) {
+        legendWindow.focus();
+        return;
+    }
+
+    legendWindow = new BrowserWindow({
+        width: 300,
+        height: 600,
+        title: '凡例',
+        webPreferences: {
+            preload: path.join(__dirname, 'Preload.js'),
+            contextIsolation: true,
+            nodeIntegration: false
+        }
+    });
+
+    legendWindow.loadFile('legend.html');
+    // legendWindow.setMenu(null);
 }
 
 // --- 4. アプリ起動時の動作 (修正) ---
@@ -271,6 +293,16 @@ ipcMain.on('run-or-update-roulette', async (event, profile) => {
             rouletteWindow.focus();
         }
     }
+
+    // 凡例ウィンドウへのデータ送信
+    if (legendWindow && !legendWindow.isDestroyed()) {
+        legendWindow.webContents.send('update-legend', profile);
+    } else {
+        createLegendWindow();
+        legendWindow.webContents.once('did-finish-load', () => {
+            legendWindow.webContents.send('update-legend', profile);
+        });
+    }
 });
 
 // (D) 'get-theme-profile'
@@ -408,6 +440,10 @@ ipcMain.on('show-roulette-context-menu', (event) => {
             submenu: themeSubmenu.length > 0 ? themeSubmenu : [{ label: 'なし', enabled: false }]
         },
         { type: 'separator' },
+        {
+            label: '凡例ウィンドウを表示',
+            click: () => { createLegendWindow(); }
+        },
         {
             label: '設定画面を開く',
             click: () => { createSettingsWindow(); }

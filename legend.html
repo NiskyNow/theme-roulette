@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>項目リスト</title>
+    <style>
+        body { 
+            font-family: sans-serif; margin: 0; padding: 10px; 
+            background: #fff; color: #333; overflow-y: auto; 
+        }
+        .item-row {
+            display: flex; align-items: center; padding: 4px 0;
+            border-bottom: 1px solid #eee; font-weight: bold;
+        }
+        .item-num { 
+            width: 30px; color: #666; font-size: 0.9em; text-align: right; margin-right: 10px; 
+        }
+        .item-name { flex: 1; word-break: break-all; }
+        /* OBSで背景を抜きたい場合用 */
+        body.transparent { background: rgba(0,0,0,0); color: white; text-shadow: 1px 1px 2px black; }
+    </style>
+</head>
+<body>
+    <div id="list-container">待機中...</div>
+
+    <script>
+        // メインプロセスからの更新を受け取る
+        // (Preload.jsは既存のものを流用可能と仮定)
+        if (window.electronAPI) {
+            window.electronAPI.on('update-legend', (data) => {
+                const container = document.getElementById('list-container');
+                if (!data || !data.items) return;
+
+                let html = '';
+                data.items.forEach((item, index) => {
+                    html += `
+                        <div class="item-row">
+                            <span class="item-num">${index + 1}.</span>
+                            <span class="item-name">${item.name}</span>
+                        </div>`;
+                });
+                container.innerHTML = html;
+            });
+        }
+    </script>
+</body>
+</html>

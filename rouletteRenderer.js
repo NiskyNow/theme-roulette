@@ -333,7 +333,13 @@ function initializeApp() {
                 }
             }
 
-            const lines = (item.name || '').split('\n');
+            const segmentAngle = item.endAngle - item.startAngle;
+            let displayText = item.name || '';
+            if (segmentAngle < 12) {
+                displayText = (item.index + 1).toString();
+            }
+
+            const lines = displayText.split('\n');
             let maxChars = 0;
             lines.forEach(line => {
                 let len = 0;
@@ -416,7 +422,7 @@ function initializeApp() {
             } else {
                 text.setAttribute('x', tx);
                 text.setAttribute('y', ty);
-                text.textContent = item.name;
+                text.textContent = displayText;
             }
 
             this.svg.appendChild(text);
