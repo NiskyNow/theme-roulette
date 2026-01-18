@@ -29,6 +29,7 @@ window.onload = async () => {
     dom.saveBtn = document.getElementById('save-btn');
     dom.saveStatus = document.getElementById('save-status');
     dom.fakeEnabled = document.getElementById('fake-enabled');
+    dom.autoRemoveWinner = document.getElementById('auto-remove-winner');
     dom.themeSelect = document.getElementById('theme-select'); 
     dom.selectAllHorizontal = document.getElementById('select-all-horizontal');
     dom.muteEnabled = document.getElementById('mute-enabled'); 
@@ -117,6 +118,7 @@ function setupEventListeners() {
 
     // 設定変更イベント
     dom.fakeEnabled.addEventListener('change', (e) => actions.updateSettings('fakeEnabled', e.target.checked));
+    dom.autoRemoveWinner.addEventListener('change', (e) => actions.updateSettings('autoRemoveWinner', e.target.checked));
     dom.muteEnabled.addEventListener('change', (e) => actions.updateSettings('isMuted', e.target.checked));
     dom.themeSelect.addEventListener('change', (e) => actions.updateSettings('theme', e.target.value));
 
@@ -435,6 +437,7 @@ function render() {
     dom.themeSelect.value = s.theme || 'candy';
     dom.fakeEnabled.checked = !!s.fakeEnabled;
     dom.muteEnabled.checked = !!s.isMuted;
+    dom.autoRemoveWinner.checked = !!s.autoRemoveWinner;
     
     const mode = s.spinMode || 'suspense'; 
     dom.spinModeSelect.value = mode;

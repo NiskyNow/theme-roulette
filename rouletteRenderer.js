@@ -1,4 +1,4 @@
-// rouletteRenderer.js (v5.2 - Strict Context Menu)
+// rouletteRenderer.js (v5.5 - Removal Notification)
 
 if (!window.electronAPI) console.error('❌ Preload error');
 else initializeApp();
@@ -16,8 +16,10 @@ function initializeApp() {
             musicDuration: 8.0,
             bgmPath: '',
             isMuted: false,
-            fakeEnabled: false
-        }
+            fakeEnabled: false,
+            autoRemoveWinner: false
+        },
+        currentThemeProfile: null 
     };
 
     // === 2. オーディオ管理 ===
@@ -231,7 +233,6 @@ function initializeApp() {
             
             if (this.btn) this.btn.style.display = 'none';
 
-            // 標準的なクラス名のみを対象にする (テーマファイルで統一済み前提)
             const centerTargets = document.querySelectorAll('.center-hub, .center-mon, .center-circle');
             
             centerTargets.forEach(el => {
@@ -239,11 +240,9 @@ function initializeApp() {
                 el.style.pointerEvents = 'auto'; 
                 el.style.webkitAppRegion = 'no-drag'; 
                 
-                // 左クリック：スピン
                 el.removeEventListener('click', spin);
                 el.addEventListener('click', spin);
                 
-                // 右クリック：コンテキストメニュー (ボタン上のみ)
                 el.removeEventListener('contextmenu', this.handleContextMenu);
                 el.addEventListener('contextmenu', this.handleContextMenu);
 
@@ -421,16 +420,17 @@ function initializeApp() {
         State.settings.musicDuration = parseFloat(data.settings.musicDuration) || 8.0;
         State.settings.isMuted = !!data.settings.isMuted;
         
+        // 自動削除設定の読み込み
+        State.settings.autoRemoveWinner = !!data.settings.autoRemoveWinner;
+        
         let bgm = data.settings.bgmPath;
         State.settings.bgmPath = (!bgm || bgm === 'sounds/music.mp3') ? '../sounds/music.mp3' : bgm;
 
-        // ▼▼▼ 修正: テーマ取得失敗時のフォールバック処理 ▼▼▼
         let profile = await window.electronAPI.getThemeProfile(data.settings.theme);
         if (!profile) {
             console.warn(`Theme "${data.settings.theme}" not found. Falling back to candy.`);
             profile = await window.electronAPI.getThemeProfile('candy');
         }
-        // ▲▲▲ 修正 ▲▲▲
 
         State.currentThemeProfile = profile;
         
@@ -440,6 +440,9 @@ function initializeApp() {
             calculateAngles();
             UI.renderRoulette(State.processedItems, State.colors, profile);
             UI.setResult('Ready');
+            
+            State.currentRotation = 0;
+            UI.rotate(0, 0, 'linear');
             
             setTimeout(sendColorsToLegend, 500);
         } else {
@@ -494,7 +497,7 @@ function initializeApp() {
     }
 
     function spin() {
-        if (State.isSpinning) return;
+        if (State.isSpinning || State.items.length === 0) return;
         State.isSpinning = true;
         UI.enableBtn(false);
         UI.setResult('');
@@ -560,6 +563,45 @@ function initializeApp() {
 
         if (winner) {
             window.electronAPI.send('roulette-finished', winner.index);
+
+            // ▼▼▼ 当選項目削除ロジック (設定がONの場合のみ実行) ▼▼▼
+            if (State.settings.autoRemoveWinner) {
+                setTimeout(() => {
+                    // 名前で一致する項目を削除
+                    const indexToRemove = State.items.findIndex(i => i.name === winner.name);
+                    
+                    if (indexToRemove !== -1) {
+                        State.items.splice(indexToRemove, 1); // リストから削除
+
+                        if (State.items.length > 0) {
+                            // 再計算と再描画
+                            State.colors = generateColors(State.items.length, State.currentThemeProfile.colorProfile);
+                            calculateAngles();
+                            UI.renderRoulette(State.processedItems, State.colors, State.currentThemeProfile);
+                            sendColorsToLegend();
+                            
+                            // ▼▼▼ 変更: 削除通知を表示してからReadyに戻す ▼▼▼
+                            UI.setResult(`Removed: ${winner.name.substring(0, 10)}${winner.name.length>10?'...':''}`);
+                            
+                            // ポインターリセット
+                            UI.rotate(0, 0.5, 'ease-out');
+                            State.currentRotation = 0;
+
+                            // 1.5秒後にReadyに戻す
+                            setTimeout(() => {
+                                UI.setResult('Ready');
+                            }, 1500);
+
+                        } else {
+                            // 全項目終了
+                            UI.renderRoulette([], [], State.currentThemeProfile); 
+                            UI.setResult('Complete!');
+                            UI.rotate(0, 0.5, 'ease-out');
+                        }
+                    }
+                }, 3000); 
+            }
+            // ▲▲▲ ロジック終了 ▲▲▲
         }
     }
 
