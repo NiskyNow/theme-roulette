@@ -24,17 +24,19 @@
         padding: 8px 10px;
         border-bottom: 1px solid #f0f0f0;
         font-size: 15px;
-        transition: all 0.3s ease; /* アニメーション用 */
+        transition: all 0.3s ease;
         border-radius: 4px;
+        color: #333;
     }
 
-    /* ▼▼▼ マスの色を表示するドット ▼▼▼ */
+    /* ▼▼▼ 丸の色（ここに項目の色を表示） ▼▼▼ */
     .color-dot {
-        width: 12px; height: 12px;
-        border-radius: 50%; /* 丸くする */
-        margin-right: 8px;
+        width: 14px; height: 14px;
+        border-radius: 50%;
+        margin-right: 12px;
         border: 1px solid rgba(0,0,0,0.1);
         flex-shrink: 0;
+        /* 色はJSで動的に指定 */
     }
 
     .item-num {
@@ -43,36 +45,36 @@
         font-size: 0.9em; flex-shrink: 0;
     }
     .item-name {
-        word-break: break-all; color: #333; font-weight: 500;
+        word-break: break-all; font-weight: 500;
     }
 
-    /* ▼▼▼ 当選時のハイライト演出 ▼▼▼ */
+    /* ▼▼▼ 当選時のハイライト（元の演出） ▼▼▼ */
     .winner-row {
         background-color: #FFF7CD !important; /* 薄い黄色 */
-        border: 2px solid #FFD700; /* 金色の枠 */
+        border: 2px solid #FFD700;           /* 金色の枠 */
         box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
         transform: scale(1.02);
         font-weight: bold;
+        z-index: 100;
     }
     .winner-row .item-num { color: #d35400; }
 
-    /* クロマキー用 */
-    body.chroma-key { background-color: #00FF00; }
 </style>
 </head>
 <body>
     <div class="header">エントリーリスト</div>
     <div class="list-container" id="list">
-        <div style="padding:10px; color:#aaa; font-size:12px;">待機中...</div>
+        <div style="padding:10px; color:#aaa; font-size:12px;">読み込み中...</div>
     </div>
 
     <script>
         let currentItems = [];
 
         if (window.electronAPI) {
-            // 1. リスト更新
+            // 1. データ受信（リスト更新）
             window.electronAPI.on('update-legend', (data) => {
                 const list = document.getElementById('list');
+                
                 if (!data || !data.items || data.items.length === 0) {
                     list.innerHTML = '<div style="padding:10px; color:#aaa;">項目がありません</div>';
                     return;
@@ -81,9 +83,8 @@
                 currentItems = data.items;
                 let html = '';
                 
-                // アイテムごとにHTML生成
                 data.items.forEach((item, index) => {
-                    // 色情報があれば反映、なければグレー
+                    // 色情報があれば反映、なければデフォルトのグレー
                     const color = item.color || '#ccc';
                     
                     html += `
@@ -99,19 +100,18 @@
 
             // 2. 当選ハイライト受信
             window.electronAPI.on('highlight-winner', (index) => {
-                // まず全てのハイライトを消す
                 document.querySelectorAll('.item-row').forEach(row => {
                     row.classList.remove('winner-row');
                 });
-
-                // 指定された行を光らせる
                 const targetRow = document.getElementById(`row-${index}`);
                 if (targetRow) {
                     targetRow.classList.add('winner-row');
-                    // 自動でその場所までスクロール
                     targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
             });
+
+            // 3. データ要求
+            window.electronAPI.send('request-legend-data');
         }
     </script>
 </body>

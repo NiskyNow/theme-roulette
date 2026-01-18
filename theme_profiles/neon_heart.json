@@ -1,6 +1,6 @@
 {
   "themeId": "neon_heart",
-  "name": "ネオン・サーキット (WebGL)",
+  "name": "ネオン・サーキット",
   "backgroundHtml": [],
   "foregroundHtml": [
     "<div class=\"pointer\"></div>",
@@ -22,75 +22,24 @@
     "canvas#webgl-canvas { width: 100%; height: 100%; display: block; border-radius: 50%; }",
     "#roulette-svg-target { opacity: 1.0; }",
     ".pointer { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-top: 50px solid #FF0055; filter: drop-shadow(0 0 10px #FF0055); z-index: 60; }",
-    
-    "/* ▼▼▼ 修正: ボタンらしいデザインに変更 (44px -> 90px) ▼▼▼ */",
-    ".center-hub {",
-    "  position: absolute;",
-    "  top: 260px;",
-    "  left: 50%;",
-    "  transform: translate(-50%, -50%);",
-    "  width: 90px;",
-    "  height: 90px;",
-    "  background: #000;",
-    "  border: 3px solid #FF0055;",
-    "  border-radius: 50%;",
-    "  box-shadow: 0 0 15px #FF0055, inset 0 0 20px rgba(255, 0, 85, 0.3);",
-    "  z-index: 60;",
-    "  display: flex;",
-    "  justify-content: center;",
-    "  align-items: center;",
-    "  /* 重要設定 */",
-    "  pointer-events: auto !important;",
-    "  cursor: pointer;",
-    "  -webkit-app-region: no-drag;",
-    "  transition: transform 0.1s, box-shadow 0.2s;",
-    "}",
-    
-    ".hub-content {",
-    "  display: flex;",
-    "  flex-direction: column;",
-    "  align-items: center;",
-    "  justify-content: center;",
-    "  pointer-events: none;",
-    "}",
-    
-    ".hub-icon {",
-    "  font-size: 20px;",
-    "  color: #FF0055;",
-    "  text-shadow: 0 0 5px #FF0055;",
-    "  margin-bottom: -2px;",
-    "  margin-left: 4px;",
-    "}",
-    
-    ".hub-text {",
-    "  font-family: 'Courier New', monospace;",
-    "  font-weight: bold;",
-    "  font-size: 16px;",
-    "  color: #FFFFFF;",
-    "  text-shadow: 0 0 5px #FF0055;",
-    "  letter-spacing: 1px;",
-    "}",
-    
-    "/* ホバー時の発光強化 */",
-    ".center-hub:hover {",
-    "  transform: translate(-50%, -50%) scale(1.1);",
-    "  box-shadow: 0 0 30px #FF0055, inset 0 0 30px rgba(255, 0, 85, 0.6);",
-    "  border-color: #FFFFFF;",
-    "}",
-    
-    ".center-hub:active {",
-    "  transform: translate(-50%, -50%) scale(0.95);",
-    "}",
-    
+    ".center-hub { position: absolute; top: 260px; left: 50%; transform: translate(-50%, -50%); width: 90px; height: 90px; background: #000; border: 3px solid #FF0055; border-radius: 50%; box-shadow: 0 0 15px #FF0055, inset 0 0 20px rgba(255, 0, 85, 0.3); z-index: 60; display: flex; justify-content: center; align-items: center; pointer-events: auto !important; cursor: pointer; -webkit-app-region: no-drag; transition: transform 0.1s, box-shadow 0.2s; }",
+    ".hub-content { display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }",
+    ".hub-icon { font-size: 20px; color: #FF0055; text-shadow: 0 0 5px #FF0055; margin-bottom: -2px; margin-left: 4px; }",
+    ".hub-text { font-family: 'Courier New', monospace; font-weight: bold; font-size: 16px; color: #FFFFFF; text-shadow: 0 0 5px #FF0055; letter-spacing: 1px; }",
+    ".center-hub:hover { transform: translate(-50%, -50%) scale(1.1); box-shadow: 0 0 30px #FF0055, inset 0 0 30px rgba(255, 0, 85, 0.6); border-color: #FFFFFF; }",
+    ".center-hub:active { transform: translate(-50%, -50%) scale(0.95); }",
     "#spinBtn { display: none !important; }",
     
-    "#result { top: 585px !important; left: 50%; transform: translateX(-50%); width: 100%; text-align: center; font-family: 'Courier New', monospace; font-size: 36px; font-weight: 900; color: #FFF; text-shadow: 0 0 10px #FF0055; -webkit-text-stroke: 1px #FF0055; paint-order: stroke fill; background: transparent; border: none; padding: 0; z-index: 100; }",
+    "/* ▼▼▼ 修正: 位置を 600px に統一 ▼▼▼ */",
+    "#result { position: absolute !important; top: 600px !important; left: 0 !important; width: 100% !important; transform: none !important; text-align: center !important; font-family: 'Courier New', monospace; font-size: 40px; font-weight: 900; color: #FFFFFF; z-index: 100; padding: 0; margin: 0; border: none; background: transparent; }",
     
-    "#legend-area { background: rgba(0, 0, 0, 0.9) !important; border: 1px solid #FF0055 !important; color: #FFF !important; font-family: 'Courier New', monospace !important; }"
+    "#result.show { text-shadow: 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 0 0 5px #000, 0 0 10px #FF0055, 0 0 20px #FF0055, 0 0 30px #FF0055 !important; -webkit-text-stroke: 1px rgba(0,0,0,0.5) !important; }",
+    
+    "#legend-area { background: rgba(0, 0, 0, 0.9) !important; border: 1px solid #FF0055 !important; color: #FFF !important; font-family: 'Courier New', monospace !important; box-shadow: 0 0 10px #FF0055; }"
   ],
   "segmentCss": {
     "path": { "stroke": "rgba(255, 255, 255, 0.1)", "stroke-width": 1, "fill-type": "solid" },
-    "text": { "font": "bold 24px 'Courier New', monospace", "fill": "#FFFFFF", "filter": "drop-shadow(0 0 3px #FF0055)" }
+    "text": { "font": "bold 24px 'Courier New', monospace", "fill": "#FFFFFF", "filter": "drop-shadow(0 0 4px #FF0055) drop-shadow(0 0 2px #000)" }
   },
   "colorProfile": { "type": "fixed-list", "colors": ["rgba(40, 0, 20, 0.8)", "rgba(80, 0, 40, 0.8)", "rgba(20, 0, 40, 0.8)", "rgba(40, 0, 80, 0.8)"] },
   "svgViewBox": "0 0 480 480"

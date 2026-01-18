@@ -1,123 +1,175 @@
-# 📜 テーマJSONファイル仕様書 (v2.1 最終版)
+SpinStream テーマ制作仕様書 (v2.0)
+1. 概要
+本アプリケーションのルーレットテーマは、単一の JSONファイル によって定義されます。 重要: 本アプリはデスクトップ上にオーバーレイ表示されるため、テーマの背景は原則として**「透過（透明）」**で作成してください。ユーザーの壁紙が透けて見えることを前提にデザインする必要があります。
 
-## 1\. 🎯 必須要件（Strict Constraints）
+このJSONファイルには、HTML構造、CSSスタイル、配色、SVGの設定が含まれており、読み込み時にレンダラーがこれを解釈して画面を構築します。
 
-| 項目 | プロパティ/値 | 理由 |
-| :--- | :--- | :--- |
-| **JSONコメント** | **禁止** | JSONパーサーの構文エラーを防ぎます。 |
-| **ファイル名** | 必須: `[themeId].json` と完全に一致させること。 | アプリケーションがファイルを正しくロードするために必須です。 |
-| **`svgViewBox`** | `"0 0 480 480"` に固定。 | SVGの描画領域を定義します。 |
+2. ファイル形式と基本構造
+ファイル形式: .json
 
------
+エンコード: UTF-8
 
-## 2\. 🎡 ルーレット本体と装飾の配置
+保存場所: theme_profiles/ ディレクトリ（推奨）
 
-### 2.1. ルーレット本体 (`.roulette-wrapper`)
+JSONルートオブジェクトの構造
+JSON
 
-`css`配列内に以下の設定を**必ず含めてください**。
-
-| CSSセレクタ | 必須CSSプロパティ | 理由 |
-| :--- | :--- | :--- |
-| `body` | `overflow: hidden !important;` | スクロールバーの発生を完全に防ぎます。 |
-| `.roulette-wrapper` | `width: 480px !important;` | ルーレットのサイズ固定。 |
-| | `height: 480px !important;` | ルーレットのサイズ固定。 |
-| | **`top: 260px;`** | 画面上端から260pxの位置に基準点を固定します。 |
-| | `position: absolute !important;` | |
-
-### 2.2. 前面装飾 (`foregroundHtml`) の配置
-
-`foregroundHtml`内の要素は、ルーレットの中心（Y=260px）を基準に配置します。
-
-| 要素 | 基準位置 (CSS) | 備考 |
-| :--- | :--- | :--- |
-| **ポインター (`.pointer`)** | `position: absolute; top: 10px` ～ `50px; left: 50%; transform: translateX(-50%);` | ルーレットの円周上端を指すよう調整します。 |
-| **中央ハブ (`.center-hub`など)** | `position: absolute; top: 260px; left: 50%; transform: translate(-50%, -50%);` | ルーレットの中心と完全に重ねます。 |
-
------
-
-## 3\. 🎨 スタイル設定（UI/セグメント）
-
-### 3.1. UI要素のCSS
-
-`master.html`が**位置** (`top`など) を固定で制御するため、テーマJSONの`css`内では**スタイルのみ**を定義し、**位置指定(`top`, `right`, `width`, `height`など)を定義しないでください**。
-
-| CSSセレクタ | 定義する内容 (例: `background`, `color`, `font-size`) | 定義してはならない内容 |
-| :--- | :--- | :--- |
-| `#spinBtn` | スタイル設定のみ。 | `position`, `top`, `left`, `transform` |
-| `#result` | スタイル設定のみ。 | `position`, `top`, `left`, `transform` |
-| `#legend-area` | スタイル設定のみ。 | `top`, `right`, `width`, `max-height` |
-
-### 3.2. セグメントCSS (`segmentCss`) の必須プロパティ
-
-**セグメントのテキスト描画の互換性**を確保するため、`segmentCss.text`には以下のプロパティを**必ず含めてください**。
-
-| プロパティ | 必須プロパティと値の例 | 理由 |
-| :--- | :--- | :--- |
-| **`segmentCss.path`** | `"stroke"`, `"stroke-width"`。 | セグメントの境界線を定義します。 |
-| **`segmentCss.text.fill`** | `"fill": "#FFFFFF"`。 | テキストの色。 |
-| **`segmentCss.text.font-size`** | `"font-size": "22px"`。 | `rouletteRenderer.js`がサイズ計算に利用します。 |
-| **`segmentCss.text.font-family`** | `"font-family": "Arial, sans-serif"`。 | テキストのフォント。 |
-
------
-
-## 4\. 📝 テンプレート (コメント無し)
-
-```json
 {
-  "themeId": "your_unique_id",
-  "name": "テーマ名",
+  "themeId": "unique_id_here",      // [必須] システム内部で識別するID (英数字)
+  "name": "表示名",                 // [必須] 設定画面のプルダウンに表示される名前
+  "backgroundHtml": [],             // [任意] ルーレット背面に配置するHTML要素の配列
+  "foregroundHtml": [],             // [任意] ルーレット前面に配置するHTML要素（ポインター、中央ハブ等）
+  "css": [],                        // [必須] テーマ全体のスタイル定義（配列形式のCSS文字列）
+  "segmentCss": {                   // [必須] ルーレット盤面（SVG）のスタイル
+    "path": {},
+    "text": {}
+  },
+  "colorProfile": {                 // [必須] マスの配色の定義
+    "type": "fixed-list",
+    "colors": []
+  },
+  "svgViewBox": "0 0 480 480"       // [必須] SVGの座標系定義（通常は "0 0 480 480" 固定）
+}
+3. レイヤー構造 (Z-index管理)
+画面は以下の順序で重なって表示されます（下から順）。
+
+Background Slot (z-index: 10)
+
+backgroundHtml で定義された要素。背景画像、エフェクト、枠線など。
+
+Roulette Wrapper (z-index: 20)
+
+回転するSVGルーレット本体。
+
+Foreground Slot (z-index: 30)
+
+foregroundHtml で定義された要素。ポインター（針）、中央の回転ボタン（ハブ）、前面エフェクト。
+
+UI Layer (z-index: 100以上)
+
+結果表示テキスト(#result)、凡例リスト、設定画面など。
+
+4. 詳細仕様
+4.1 HTML要素の注入 (backgroundHtml, foregroundHtml)
+HTMLタグを文字列の配列として記述します。クラス名やIDを付与し、後述のcssでスタイルを当てます。
+
+ポインター（針）: 必須要素です。通常は foregroundHtml に <div class="pointer"></div> として配置します。
+
+センターハブ（回転ボタン）: 必須要素です。クリックして回転させるための要素です。
+
+クラス名: .center-hub または .center-circle 推奨。
+
+挙動: アプリ側で自動的にクリックイベントが付与されます。
+
+4.2 CSSスタイリング (css)
+配列の各要素がCSSの1行として結合され、<style>タグに展開されます。
+
+必須スタイリング対象
+body (最重要):
+
+必ず background-color: transparent !important; を指定してください。
+
+これを忘れると、アプリのウィンドウ全体が白や黒で塗りつぶされ、デスクトップが見えなくなります。
+
+.roulette-wrapper:
+
+位置合わせ用。通常 top: 300px, left: 50%, transform: translate(-50%, -50%) で画面中央に配置。
+
+.pointer:
+
+針のデザイン。top で位置調整。
+
+transform: translateX(-50%) で左右中央揃えを徹底してください。
+
+.center-hub:
+
+中央ボタンのデザイン。pointer-events: auto !important が必須。
+
+#result (改訂):
+
+結果表示テキスト。
+
+重要: 背景が可変であるため、強力な縁取りが必要です。
+
+text-shadow の重ねがけは描画が汚くなるため非推奨です。
+
+必ず -webkit-text-stroke を使用して縁取りを行い、paint-order: stroke fill を指定して文字潰れを防いでください。
+
+4.3 ルーレット盤面設定 (segmentCss, colorProfile)
+SVGで描画される扇形（セグメント）と文字のスタイルです。
+
+segmentCss.path: 扇形のスタイル。stroke（境界線）、stroke-width（太さ）などが指定可能。
+
+segmentCss.text: 項目名のスタイル。fill（文字色）、font-size、filter（ドロップシャドウ）などが指定可能。
+
+colorProfile.colors: 16進数カラーコード（例: #FF0000）の配列。この配列順に色がループして適用されます。
+
+5. テンプレート（実装用ひな形）
+新しいテーマを作成する際は、以下のJSONをコピーして編集してください。 特に #result と .pointer の記述は以下を遵守してください。
+
+JSON
+
+{
+  "themeId": "new_transparent_theme",
+  "name": "新規テーマ（背景透過）",
   "backgroundHtml": [
-    "<div class=\"bg-decoration\"></div>"
+    "<div class=\"bg-decoration\"></div>" 
   ],
   "foregroundHtml": [
     "<div class=\"pointer\"></div>",
-    "<div class=\"center-hub\"></div>"
+    "<div class=\"center-circle\">",
+    "  <div class=\"center-text\">SPIN</div>",
+    "</div>"
   ],
   "css": [
-    "body { overflow: hidden !important; }",
-    "",
-    ".roulette-wrapper {",
-    "  width: 480px !important;",
-    "  height: 480px !important;",
-    "  position: absolute !important;",
-    "  top: 260px;",
-    "  left: 50%;",
-    "  transform: translate(-50%, -50%);",
-    "  margin: 0 !important;",
-    "}",
-    "",
-    "#roulette-svg-target {",
-    "  background: #FFFFFF;",
-    "  border-radius: 50%;",
-    "}",
-    "",
-    ".pointer { position: absolute; top: 35px; left: 50%; transform: translateX(-50%); }",
-    ".center-hub { position: absolute; top: 260px; left: 50%; transform: translate(-50%, -50%); }",
-    "",
-    "#spinBtn { color: black; background: white; border: 2px solid gray; }",
-    "#result { color: red; font-size: 30px; }",
-    "#legend-area { background: rgba(255, 255, 255, 0.9); border: 1px solid #ccc; color: #333; }",
-    ""
+    "/* ▼▼▼ 最重要：背景を透過させる設定 ▼▼▼ */",
+    "body { overflow: hidden !important; background-color: transparent !important; font-family: sans-serif; }",
+    
+    "/* ルーレット本体の位置とサイズ */",
+    ".roulette-wrapper { width: 480px !important; height: 480px !important; position: absolute !important; top: 300px; left: 50%; transform: translate(-50%, -50%); margin: 0 !important; }",
+    
+    "/* SVG自体のスタイル（影で浮き上がらせる） */",
+    "#roulette-svg-target { filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3)); }",
+    
+    "/* 背景装飾（画面全体を塗りつぶさないこと！） */",
+    ".bg-decoration { position: absolute; top: 300px; left: 50%; transform: translate(-50%, -50%); width: 550px; height: 550px; border-radius: 50%; background: radial-gradient(rgba(255,255,255,0.2), transparent 70%); pointer-events: none; }",
+    
+    "/* ポインター（針）：シンプルな三角形推奨 */",
+    ".pointer { position: absolute; top: 30px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 40px solid #FF0000; z-index: 50; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }",
+    
+    "/* 中央ボタン */",
+    ".center-circle { position: absolute; top: 300px; left: 50%; transform: translate(-50%, -50%); width: 80px; height: 80px; background: #FFF; border-radius: 50%; border: 4px solid #CCC; z-index: 60; display: flex; justify-content: center; align-items: center; cursor: pointer; pointer-events: auto !important; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: transform 0.1s; }",
+    ".center-circle:active { transform: translate(-50%, -50%) scale(0.95); }",
+    ".center-text { font-weight: bold; color: #333; }",
+    
+    "/* 旧ボタン非表示（必須） */",
+    "#spinBtn { display: none !important; }",
+    
+    "/* ▼▼▼ 結果表示テキスト（クリーンな縁取り設定） ▼▼▼ */",
+    "/* text-shadowの重ねがけは汚くなるため禁止。text-strokeを使用する。 */",
+    "#result { position: absolute !important; top: 580px !important; left: 0 !important; width: 100% !important; text-align: center !important; font-size: 46px; font-weight: 900; color: #FFFFFF; -webkit-text-stroke: 3px #000000; paint-order: stroke fill; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); pointer-events: none; font-family: sans-serif; }"
   ],
   "segmentCss": {
-    "path": { 
-      "stroke": "#000000", 
-      "stroke-width": 4,
-      "fill-type": "solid" 
-    },
-    "text": { 
-      "font": "bold 22px Arial",
-      "fill": "#000000", 
-      "filter": "drop-shadow(0px 2px 3px rgba(255, 255, 255, 0.9))",
-      "font-size": "22px",
-      "font-weight": "bold",
-      "font-family": "Arial, sans-serif"
-    }
+    "path": { "stroke": "#FFFFFF", "stroke-width": 2 },
+    "text": { "font-size": "18px", "font-weight": "bold", "fill": "#FFFFFF", "filter": "drop-shadow(1px 1px 2px rgba(0,0,0,0.8))" }
   },
   "colorProfile": {
     "type": "fixed-list",
-    "colors": [ "#FFCCCC", "#CCFFCC", "#CCCCFF" ]
+    "colors": [ "#FF5733", "#33FF57", "#3357FF", "#F333FF", "#FF33A8" ]
   },
   "svgViewBox": "0 0 480 480"
 }
-```
+6. デザイン時の注意点 (Dos and Don'ts)
+Do (推奨):
+透過前提のデザイン: ユーザーの壁紙が背景になります。「透明なガラスの上にルーレットが浮いている」イメージでデザインしてください。
+
+text-stroke の使用: 結果テキスト (#result) は、text-shadow ではなく -webkit-text-stroke で縁取りを行ってください。これにより、どのような背景でも美しく可読性の高い文字になります。
+
+ポインターの位置: left: 50%; transform: translateX(-50%); で中央揃えを徹底してください。複雑な ::after 擬似要素を使うと中心がずれやすいため、シンプルな三角形を推奨します。
+
+Don't (禁止):
+body に不透明な色を指定する: background-color: white; などと書くと、アプリ全体が白い四角で塗りつぶされ、透過しなくなります。
+
+text-shadow で無理やり縁取りを作る: 複数の影を上下左右にずらして重ねると、角がギザギザになり、視認性と美観を損ねます。
+
+画面全体を覆う背景画像: width: 100vw; height: 100vh; の不透明な画像を置くと、透過の意味がなくなります。背景装飾はルーレット周辺に留めてください。

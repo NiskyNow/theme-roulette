@@ -243,10 +243,9 @@ function initializeApp() {
                 el.removeEventListener('click', spin);
                 el.addEventListener('click', spin);
                 
-                // ▼▼▼ 修正: 右クリックメニューはボタン上でのみ有効 ▼▼▼
+                // 右クリック：コンテキストメニュー (ボタン上のみ)
                 el.removeEventListener('contextmenu', this.handleContextMenu);
                 el.addEventListener('contextmenu', this.handleContextMenu);
-                // ▲▲▲ ▲▲▲
 
                 el.classList.add('clickable-center');
             });
@@ -254,42 +253,14 @@ function initializeApp() {
             EffectManager.refresh(profile.themeId);
         },
         
-        // メニュー表示ハンドラ
         handleContextMenu(e) {
             e.preventDefault();
-            e.stopPropagation(); // 親への伝播を止める（念のため）
+            e.stopPropagation(); 
             window.electronAPI.showRouletteContextMenu();
         },
 
         adjustLayout() {
-            // ▼▼▼ 修正: master.html の flex-direction: column 化に伴い、自動計算を無効化 ▼▼▼
-            // const wrapper = document.querySelector('.roulette-wrapper');
-            // const result = document.getElementById('result');
-            // 
-            // if (wrapper && result) {
-            //     const top = wrapper.offsetTop;
-            //     const height = wrapper.offsetHeight;
-            //     const visualBottom = top + (height / 2);
-            //     const targetTop = visualBottom + 50;
-            //     
-            //     result.style.position = 'absolute';
-            //     result.style.top = `${targetTop}px`;
-            //     result.style.left = '50%';
-            //     result.style.transform = 'translateX(-50%)';
-            //     result.style.margin = '0';
-            //     result.style.width = '100%';
-            //     result.style.textAlign = 'center';
-            //     
-            //     // ▼▼▼ 修正: 結果表示は徹底的に操作無効化 ▼▼▼
-            //     result.style.userSelect = 'none';
-            //     result.style.webkitUserSelect = 'none'; // Chrome系
-            //     result.style.pointerEvents = 'none';    // クリック透過
-            //     // ▲▲▲ ▲▲▲
-            //     
-            //     if (this.legend) {
-            //         this.legend.style.top = `${targetTop}px`;
-            //     }
-            // }
+            // 自動計算無効化
         },
 
         renderRoulette(items, colors, profile) {
@@ -453,17 +424,27 @@ function initializeApp() {
         let bgm = data.settings.bgmPath;
         State.settings.bgmPath = (!bgm || bgm === 'sounds/music.mp3') ? '../sounds/music.mp3' : bgm;
 
-        const profile = await window.electronAPI.getThemeProfile(data.settings.theme);
+        // ▼▼▼ 修正: テーマ取得失敗時のフォールバック処理 ▼▼▼
+        let profile = await window.electronAPI.getThemeProfile(data.settings.theme);
+        if (!profile) {
+            console.warn(`Theme "${data.settings.theme}" not found. Falling back to candy.`);
+            profile = await window.electronAPI.getThemeProfile('candy');
+        }
+        // ▲▲▲ 修正 ▲▲▲
+
         State.currentThemeProfile = profile;
         
-        UI.applyTheme(profile);
-        State.colors = generateColors(State.items.length, profile.colorProfile);
-        calculateAngles();
-        UI.renderRoulette(State.processedItems, State.colors, profile);
-        UI.setResult('Ready');
-
-        // ▼▼▼ 修正：凡例への色同期を関数化して呼び出し ▼▼▼
-        setTimeout(sendColorsToLegend, 500);
+        if (profile) {
+            UI.applyTheme(profile);
+            State.colors = generateColors(State.items.length, profile.colorProfile);
+            calculateAngles();
+            UI.renderRoulette(State.processedItems, State.colors, profile);
+            UI.setResult('Ready');
+            
+            setTimeout(sendColorsToLegend, 500);
+        } else {
+            console.error("Critical: Failed to load fallback theme.");
+        }
     });
 
     function sendColorsToLegend() {
@@ -570,28 +551,19 @@ function initializeApp() {
         UI.setResult(winnerName);
         Sound.play('result');
 
-        // ▼▼▼ 追加：当選インデックスを計算して通知する ▼▼▼
-        // 1. 角度からインデックスを逆算する
         const normalizedRot = finalRot % 360; 
-        
-        // このレンダラーでは 0度が真上(Top)のため、補正値は 0 となります
         const pointerAngle = (360 - normalizedRot) % 360; 
         
-        // すでに計算済みの角度データ（State.processedItems）から当選項目を探す
         const winner = State.processedItems.find(item => 
             pointerAngle >= item.startAngle && pointerAngle < item.endAngle
         );
 
-        // メインプロセスへ送信
         if (winner) {
             window.electronAPI.send('roulette-finished', winner.index);
         }
-        // ▲▲▲ 追加ここまで ▲▲▲
     }
 
-    // ▼▼▼ 修正: グローバルな右クリックメニューは「禁止（なにもしない）」 ▼▼▼
     window.addEventListener('contextmenu', (e) => {
         e.preventDefault();
-        // ここではメニューを表示しない！
     });
 }

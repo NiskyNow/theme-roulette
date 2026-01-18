@@ -31,7 +31,7 @@ window.onload = async () => {
     dom.fakeEnabled = document.getElementById('fake-enabled');
     dom.themeSelect = document.getElementById('theme-select'); 
     dom.selectAllHorizontal = document.getElementById('select-all-horizontal');
-    dom.muteEnabled = document.getElementById('mute-enabled'); // 無音
+    dom.muteEnabled = document.getElementById('mute-enabled'); 
     
     // 演出モード関連
     dom.spinModeSelect = document.getElementById('spin-mode-select');
@@ -41,19 +41,18 @@ window.onload = async () => {
     dom.bgmPathDisplay = document.getElementById('bgm-path-display');
     dom.bgmSelectBtn = document.getElementById('bgm-select-btn');
     dom.bgmResetBtn = document.getElementById('bgm-reset-btn');
-    dom.bgmWarning = document.getElementById('bgm-warning'); // 警告
+    dom.bgmWarning = document.getElementById('bgm-warning');
 
     dom.openFolderBtn = document.getElementById('open-folder-btn');
     dom.runBtn = document.getElementById('open-roulette-btn');
 
-    // ▼▼▼ まとめて入力用要素の取得 ▼▼▼
+    // まとめて入力
     dom.bulkBtn = document.getElementById('bulk-input-btn');
     dom.bulkModal = document.getElementById('bulk-modal');
     dom.bulkTextarea = document.getElementById('bulk-textarea');
     dom.bulkConfirm = document.getElementById('bulk-confirm-btn');
     dom.bulkCancel = document.getElementById('bulk-cancel-btn');
 
-    // フォルダボタンのクリックイベント
     dom.openFolderBtn.addEventListener('click', () => {
         api.openSaveFolder();
     });
@@ -96,10 +95,9 @@ function setupEventListeners() {
         render(); 
     });
 
-    // ▼▼▼ まとめて入力機能のイベント ▼▼▼
+    // まとめて入力イベント
     if (dom.bulkBtn) {
         dom.bulkBtn.addEventListener('click', () => {
-            // モーダルを開く
             dom.bulkTextarea.value = '';
             dom.bulkModal.classList.add('visible');
             dom.bulkTextarea.focus();
@@ -107,43 +105,37 @@ function setupEventListeners() {
     }
     if (dom.bulkCancel) {
         dom.bulkCancel.addEventListener('click', () => {
-            // モーダルを閉じる
             dom.bulkModal.classList.remove('visible');
         });
     }
     if (dom.bulkConfirm) {
         dom.bulkConfirm.addEventListener('click', () => {
-            // 追加実行
             actions.addBulkItems(dom.bulkTextarea.value);
             dom.bulkModal.classList.remove('visible');
         });
     }
-    // ▲▲▲ 追加ここまで ▲▲▲
 
     // 設定変更イベント
     dom.fakeEnabled.addEventListener('change', (e) => actions.updateSettings('fakeEnabled', e.target.checked));
     dom.muteEnabled.addEventListener('change', (e) => actions.updateSettings('isMuted', e.target.checked));
     dom.themeSelect.addEventListener('change', (e) => actions.updateSettings('theme', e.target.value));
 
-    // モード変更イベント（即時反映）
     dom.spinModeSelect.addEventListener('change', (e) => {
         const mode = e.target.value;
         actions.updateSettings('spinMode', mode);
         toggleMusicSettings(mode);
     });
 
-    // BGM関連
     dom.bgmSelectBtn.addEventListener('click', async () => {
         const path = await api.selectAudioFile();
         if (path) {
             actions.updateSettings('bgmPath', path);
             dom.bgmPathDisplay.value = path;
-            validateBgm(); // チェック
+            validateBgm(); 
         }
     });
 
     dom.bgmResetBtn.addEventListener('click', () => {
-        // リセット時は sounds/music.mp3 に戻す
         const defaultBgm = 'sounds/music.mp3';
         actions.updateSettings('bgmPath', defaultBgm);
         dom.bgmPathDisplay.value = defaultBgm;
@@ -156,17 +148,29 @@ function setupEventListeners() {
         actions.updateSettings('musicDuration', val);
     });
 
-    dom.saveBtn.addEventListener('click', () => {
-        // 保存に成功したら、ルーレットも更新する
-        if (actions.saveData(true)) {
-            api.send('run-or-update-roulette', state.currentProfile);
+    // 入力確定用
+    const forceCommitInput = () => {
+        if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
+            document.activeElement.blur();
         }
+    };
+
+    dom.saveBtn.addEventListener('click', () => {
+        forceCommitInput(); 
+        setTimeout(() => {
+            if (actions.saveData(true)) {
+                api.send('run-or-update-roulette', state.currentProfile);
+            }
+        }, 50);
     });
     
     dom.runBtn.addEventListener('click', () => {
-        if (actions.saveData(false)) {
-            api.send('run-or-update-roulette', state.currentProfile);
-        }
+        forceCommitInput(); 
+        setTimeout(() => {
+            if (actions.saveData(false)) {
+                api.send('run-or-update-roulette', state.currentProfile);
+            }
+        }, 50);
     });
 
     dom.selectAllHorizontal.addEventListener('change', (e) => {
@@ -207,58 +211,26 @@ function setupEventListeners() {
 
 function setupIPCListeners() {
     api.on('data-loaded', (data) => {
+        // ▼▼▼ 修正: データ受け取り時の正規化処理を削除（Mainで処理済みのため） ▼▼▼
         if (!data) {
-            state.appData = { activeProfileId: 'default-profile-fallback', profiles: [] };
+            // 万が一データがない場合の安全策
+            state.appData = { activeProfileId: 'default', profiles: [] };
         } else {
             state.appData = data;
         }
         
-        if (!state.appData.profiles || state.appData.profiles.length === 0) {
-            const newId = `profile-${Date.now()}`;
-            state.appData.profiles = [{
-                id: newId,
-                name: "デフォルト設定",
-                items: [{ "name": "新規項目", "weight": null, "isAuto": true, "isHorizontal": false }],
-                settings: { theme: "arcade", fakeEnabled: false, spinMode: "suspense", bgmPath: "sounds/music.mp3" }
-            }];
-            state.appData.activeProfileId = newId;
+        // アクティブプロファイルが消失している場合のフォールバック
+        if (!state.appData.profiles.find(p => p.id === state.appData.activeProfileId)) {
+            if (state.appData.profiles.length > 0) {
+                state.appData.activeProfileId = state.appData.profiles[0].id;
+            } else {
+                // プロファイルがゼロの場合（通常ありえないが念のため）
+                actions.handleNewProfile(); 
+                return;
+            }
         }
 
         state.currentProfileId = state.appData.activeProfileId;
-        let currentProfile = state.currentProfile;
-        if (!currentProfile) {
-            state.currentProfileId = state.appData.profiles[0].id;
-            state.appData.activeProfileId = state.appData.profiles[0].id;
-            currentProfile = state.currentProfile;
-        }
-        
-        // ▼▼▼ 互換性チェック: 未設定の値をデフォルトで埋める ▼▼▼
-        if (!currentProfile.settings) currentProfile.settings = {};
-        
-        // モード未設定(古いデータ)ならサスペンスにする
-        if (!currentProfile.settings.spinMode) currentProfile.settings.spinMode = 'suspense';
-        
-        // 無音未設定ならOFF
-        if (currentProfile.settings.isMuted === undefined) currentProfile.settings.isMuted = false;
-
-        // アイテム設定の互換性
-        if (currentProfile.items) {
-            currentProfile.items.forEach(item => {
-                if (item.isAuto === undefined) {
-                    item.isAuto = (item.weight === null || item.weight === 0 || item.weight === "");
-                }
-                if (item.isHorizontal === undefined) {
-                    item.isHorizontal = false;
-                }
-            });
-        }
-
-        // ▼▼▼ 互換性チェック: BGM未設定ならデフォルトを入れる ▼▼▼
-        if (!currentProfile.settings.bgmPath) {
-            currentProfile.settings.bgmPath = "sounds/music.mp3";
-        }
-        // ▲▲▲ ▲▲▲
-
         render();
     });
     
@@ -275,10 +247,8 @@ const actions = {
         profile.items.push({ name: "新規項目", weight: null, isAuto: true, isHorizontal: false });
     },
 
-    // ▼▼▼ 追加：まとめて追加ロジック ▼▼▼
     addBulkItems(text) {
         if (!text) return;
-        // 改行で分割し、空白行を除去
         const lines = text.split(/\r\n|\n|\r/).filter(line => line.trim() !== "");
         
         if (lines.length === 0) return;
@@ -294,10 +264,9 @@ const actions = {
                 isHorizontal: false 
             });
         });
-        render(); // 再描画
+        render(); 
         showSaveStatus(`${lines.length}個の項目を追加しました（未保存）`, '#2B6CB0', 3000);
     },
-    // ▲▲▲ 追加ここまで ▲▲▲
     
     updateItem(index, key, value) {
         const profile = state.currentProfile;
@@ -326,17 +295,13 @@ const actions = {
     },
     
     saveData(showStatus = true) {
-        // BGMチェック
         if (!validateBgm()) {
-            // エラー表示して中断するか、警告だけ出すか。ここでは警告のみで保存はさせる（次回設定するため）
             if(showStatus) showSaveStatus('⚠️ BGMが設定されていません', '#C05621');
         } else {
             if (showStatus) showSaveStatus('保存中...', '');
         }
         
-        const { isValid } = calculateAndDistribute(state.currentProfile.items);
-        
-        if (isValid && validateProfile()) {
+        if (validateProfile()) {
             state.appData.activeProfileId = state.currentProfileId;
             api.send('save-data', state.appData);
             return true;
@@ -368,6 +333,7 @@ const actions = {
         });
     },
 
+    // ▼▼▼ 修正: 新規作成をMainプロセスに依頼する ▼▼▼
     async handleNewProfile() {
         const { value: newName } = await Swal.fire({
             title: "新規作成", input: "text", inputLabel: "保存設定の名前",
@@ -375,15 +341,18 @@ const actions = {
             heightAuto: false
         });
         if (newName) {
-            const newId = `profile-${Date.now()}`;
-            state.appData.profiles.push({
-                id: newId, name: newName, 
-                items: [{ "name": "新規項目", "weight": null, "isAuto": true, isHorizontal: false }],
-                settings: { theme: "arcade", fakeEnabled: false, spinMode: "suspense", bgmPath: "sounds/music.mp3" }
-            });
-            actions.loadProfile(newId);
+            // Mainプロセスから正規化された新しいプロファイルを取得
+            const newProfile = await api.createProfile(newName);
+            
+            state.appData.profiles.push(newProfile);
+            actions.loadProfile(newProfile.id);
+            
+            // 即時保存してデータを確定させる
+            actions.saveData(false);
         }
     },
+    // ▲▲▲ 修正 ▲▲▲
+
     async handleRenameProfile() {
         const profile = state.currentProfile;
         if (!profile) return;
@@ -459,19 +428,18 @@ function render() {
     // リスト描画
     renderItemsList(profile.items);
     
-    // 設定反映
+    // 設定反映 (正規化されているので ?. チェック不要だが、念のため)
     if(!profile.settings) profile.settings = {};
     const s = profile.settings;
 
-    dom.themeSelect.value = s.theme || 'arcade';
+    dom.themeSelect.value = s.theme || 'candy';
     dom.fakeEnabled.checked = !!s.fakeEnabled;
     dom.muteEnabled.checked = !!s.isMuted;
     
-    const mode = s.spinMode || 'suspense'; // デフォルト: suspense
+    const mode = s.spinMode || 'suspense'; 
     dom.spinModeSelect.value = mode;
     toggleMusicSettings(mode);
     
-    // BGM設定
     dom.bgmPathDisplay.value = s.bgmPath || "sounds/music.mp3";
     const dur = s.musicDuration || 8.0;
     dom.spinDurationSlider.value = dur;
@@ -531,7 +499,6 @@ function validateBgm() {
     const p = state.currentProfile;
     if (!p || !p.settings) return true;
     
-    // ミュージックモードかつBGMなしの場合
     if (p.settings.spinMode === 'music' && !p.settings.bgmPath) {
         dom.bgmWarning.style.display = 'block';
         dom.bgmPathDisplay.classList.add('error');

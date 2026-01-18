@@ -38,104 +38,32 @@
     ".scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, transparent, #00ffff, transparent); animation: scanMove 2s linear infinite; opacity: 0.7; pointer-events: none; }",
     "@keyframes scanMove { 0% { top: 0%; } 100% { top: 100%; } }",
     "",
-    "/* Pointer */",
-    ".pointer { position: absolute; top: 60px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-top: 40px solid #ff00ff; filter: drop-shadow(0 0 15px #ff00ff); animation: pointerGlow 1s ease-in-out infinite; pointer-events: none; z-index: 100; }",
-    "@keyframes pointerGlow { 0%, 100% { filter: drop-shadow(0 0 15px #ff00ff); } 50% { filter: drop-shadow(0 0 30px #ff00ff); } }",
+    "/* Pointer - ▼▼▼ 修正: 位置を30px、全体を一回り小さく変更 ▼▼▼ */",
+    ".pointer { position: absolute; top: 30px; left: 50%; transform: translateX(-50%); width: 30px; height: 50px; z-index: 100; pointer-events: none; }",
+
+    ".pointer::after { content: ''; position: absolute; bottom: 0; left: 0; width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 40px solid #00ffff; filter: drop-shadow(0 0 10px #00ffff) drop-shadow(0 0 20px #ff00ff); animation: pointerGlow 0.8s ease-in-out infinite alternate; }",
+
+    ".pointer::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 24px; height: 8px; background: #ff00ff; box-shadow: 0 0 15px #ff00ff, 0 0 30px #00ffff; clip-path: polygon(0 0, 100% 0, 70% 100%, 30% 100%); }",
+
+    "@keyframes pointerGlow { from { filter: drop-shadow(0 0 10px #00ffff) drop-shadow(0 0 20px #ff00ff); } to { filter: drop-shadow(0 0 25px #00ffff) drop-shadow(0 0 50px #ff00ff); } }",
     "",
-    "/* ▼▼▼ 修正: ボタンらしいデザインに変更 ▼▼▼ */",
-    ".center-hub {",
-    "  position: absolute;",
-    "  top: 300px;",
-    "  left: 50%;",
-    "  transform: translate(-50%, -50%);",
-    "  width: 90px;",
-    "  height: 90px;",
-    "  background: radial-gradient(circle, #ff00ff, #8800ff);",
-    "  border-radius: 50%;",
-    "  border: 4px solid #00ffff;",
-    "  box-shadow: 0 0 40px #ff00ff, inset 0 0 30px rgba(0, 255, 255, 0.5);",
-    "  z-index: 100;",
-    "  /* フレックスボックスで文字を中央揃え */",
-    "  display: flex;",
-    "  justify-content: center;",
-    "  align-items: center;",
-    "  /* 重要設定 */",
-    "  pointer-events: auto !important;",
-    "  cursor: pointer;",
-    "  -webkit-app-region: no-drag;",
-    "  transition: transform 0.1s, box-shadow 0.2s;",
-    "}",
-    
-    ".hub-content {",
-    "  display: flex;",
-    "  flex-direction: column;",
-    "  align-items: center;",
-    "  justify-content: center;",
-    "  pointer-events: none; /* 文字がクリックを邪魔しないように */",
-    "}",
-    
-    ".hub-icon {",
-    "  font-size: 20px;",
-    "  color: #00ffff;",
-    "  text-shadow: 0 0 10px #ffffff;",
-    "  margin-bottom: -2px;",
-    "  margin-left: 4px; /* 見た目のバランス調整 */",
-    "}",
-    
-    ".hub-text {",
-    "  font-family: 'Arial', sans-serif;",
-    "  font-weight: bold;",
-    "  font-size: 16px;",
-    "  color: #ffffff;",
-    "  text-shadow: 0 0 8px #00ffff, 0 0 15px #ff00ff;",
-    "  letter-spacing: 1px;",
-    "}",
-    
-    "/* ホバー時の発光強化 */",
-    ".center-hub:hover {",
-    "  transform: translate(-50%, -50%) scale(1.1);",
-    "  box-shadow: 0 0 60px #ff00ff, inset 0 0 50px rgba(0, 255, 255, 0.8);",
-    "  border-color: #ffffff;",
-    "}",
-    
-    ".center-hub:active {",
-    "  transform: translate(-50%, -50%) scale(0.95);",
-    "}",
-    
-    "/* スピンボタン非表示 */",
+    ".center-hub { position: absolute; top: 300px; left: 50%; transform: translate(-50%, -50%); width: 90px; height: 90px; background: radial-gradient(circle, #ff00ff, #8800ff); border-radius: 50%; border: 4px solid #00ffff; box-shadow: 0 0 40px #ff00ff, inset 0 0 30px rgba(0, 255, 255, 0.5); z-index: 100; display: flex; justify-content: center; align-items: center; pointer-events: auto !important; cursor: pointer; -webkit-app-region: no-drag; transition: transform 0.1s, box-shadow 0.2s; }",
+    ".hub-content { display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }",
+    ".hub-icon { font-size: 20px; color: #00ffff; text-shadow: 0 0 10px #ffffff; margin-bottom: -2px; margin-left: 4px; }",
+    ".hub-text { font-family: 'Arial', sans-serif; font-weight: bold; font-size: 16px; color: #ffffff; text-shadow: 0 0 8px #00ffff, 0 0 15px #ff00ff; letter-spacing: 1px; }",
+    ".center-hub:hover { transform: translate(-50%, -50%) scale(1.1); box-shadow: 0 0 60px #ff00ff, inset 0 0 50px rgba(0, 255, 255, 0.8); border-color: #ffffff; }",
+    ".center-hub:active { transform: translate(-50%, -50%) scale(0.95); }",
     "#spinBtn { display: none !important; }",
     
-    "#result { position: absolute; top: 650px; left: 50%; transform: translateX(-50%); font-size: 32px; font-weight: bold; color: #00ffff; text-shadow: 0 0 20px #00ffff, 0 0 40px #ff00ff; animation: resultFlicker 0.5s ease-in-out infinite; width: 100%; text-align: center; z-index: 100; }",
-    "@keyframes resultFlicker { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }",
-    "#legend-area { top: 570px !important; right: 20px !important; width: 160px !important; max-height: 150px !important; background: rgba(10, 10, 30, 0.9) !important; border: 2px solid #00ffff !important; color: #00ffff !important; }"
+    "#result { position: absolute !important; top: 600px !important; left: 0 !important; width: 100% !important; transform: none !important; font-size: 38px; font-weight: bold; color: #ffffff; text-shadow: 2px 2px 0 #000, -2px -2px 0 #000, 0 0 10px #00ffff, 0 0 20px #ff00ff; -webkit-text-stroke: 1px #00ffff; paint-order: stroke fill; animation: resultFlicker 0.5s ease-in-out infinite; text-align: center; z-index: 100; padding: 0; background: transparent; border: none; }",
+    "@keyframes resultFlicker { 0%, 100% { opacity: 1; } 50% { opacity: 0.9; } }",
+    
+    "#legend-area { top: 600px !important; right: 20px !important; width: 160px !important; max-height: 150px !important; background: rgba(10, 10, 30, 0.9) !important; border: 2px solid #00ffff !important; color: #00ffff !important; }"
   ],
   "segmentCss": {
-    "path": {
-      "stroke": "#00ffff",
-      "stroke-width": 2
-    },
-    "text": {
-      "font": "bold 20px 'Courier New', monospace",
-      "fill": "#ffffff",
-      "text-shadow": "0 0 10px #00ffff, 0 0 20px #ff00ff"
-    }
+    "path": { "stroke": "#00ffff", "stroke-width": 2 },
+    "text": { "font": "bold 20px 'Courier New', monospace", "fill": "#ffffff", "text-shadow": "0 0 10px #00ffff, 0 0 20px #ff00ff" }
   },
-  "colorProfile": {
-    "type": "fixed-list",
-    "colors": [
-      "#0a0a1e",
-      "#1a0a2e",
-      "#2d1b4e",
-      "#16213e",
-      "#0f3460",
-      "#1f1f3a",
-      "#2a1a4a",
-      "#1e1e3f",
-      "#0d1b2a",
-      "#1b263b",
-      "#0f172a",
-      "#1e293b"
-    ]
-  },
+  "colorProfile": { "type": "fixed-list", "colors": ["#0a0a1e", "#1a0a2e", "#2d1b4e", "#16213e", "#0f3460", "#1f1f3a", "#2a1a4a", "#1e1e3f", "#0d1b2a", "#1b263b", "#0f172a", "#1e293b"] },
   "svgViewBox": "0 0 480 480"
 }

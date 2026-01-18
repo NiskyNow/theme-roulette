@@ -39,82 +39,27 @@
     ".cherry-branch::before { content: ''; position: absolute; width: 100%; height: 4px; background: #8b4513; top: 50%; transform: translateY(-50%) rotate(-15deg); border-radius: 2px; }",
     ".branch-left { top: 20px; left: -40px; background: radial-gradient(circle, #ffb7c5 8px, transparent 8px); transform: rotate(-30deg); }",
     ".branch-right { top: 20px; right: -40px; background: radial-gradient(circle, #ffb7c5 8px, transparent 8px); transform: scaleX(-1) rotate(-30deg); }",
-    
-    "/* ▼▼▼ 修正: 標準名(center-hub)に変更し、クリック可能なボタンデザインへ ▼▼▼ */",
-    ".center-hub {",
-    "  position: absolute;",
-    "  top: 300px;",
-    "  left: 50%;",
-    "  transform: translate(-50%, -50%);",
-    "  width: 100px;",
-    "  height: 100px;",
-    "  background: radial-gradient(circle, #ffffff, #ffb6c1);",
-    "  border-radius: 50%;",
-    "  border: 6px solid #d4a5a5;",
-    "  box-shadow: 0 0 40px rgba(255, 182, 193, 0.8);",
-    "  display: flex;",
-    "  justify-content: center;",
-    "  align-items: center;",
-    "  z-index: 30;",
-    "  /* 重要設定 */",
-    "  pointer-events: auto !important;",
-    "  cursor: pointer;",
-    "  -webkit-app-region: no-drag;",
-    "  transition: transform 0.2s ease, box-shadow 0.2s;",
-    "}",
-    
-    ".hub-content {",
-    "  display: flex;",
-    "  flex-direction: column;",
-    "  align-items: center;",
-    "  justify-content: center;",
-    "  pointer-events: none;",
-    "}",
-    
-    ".hub-icon {",
-    "  font-size: 28px;",
-    "  margin-bottom: -5px;",
-    "  animation: centerBloom 2s ease-in-out infinite;",
-    "}",
-    
-    ".hub-text {",
-    "  font-size: 16px;",
-    "  font-weight: bold;",
-    "  color: #d4a5a5;",
-    "  text-shadow: 1px 1px 0 #fff;",
-    "  font-family: 'Arial', sans-serif;",
-    "  letter-spacing: 1px;",
-    "}",
-    
-    ".center-hub:hover {",
-    "  transform: translate(-50%, -50%) scale(1.1);",
-    "  box-shadow: 0 0 60px rgba(255, 105, 180, 0.9);",
-    "  border-color: #ff69b4;",
-    "}",
-    
-    ".center-hub:active {",
-    "  transform: translate(-50%, -50%) scale(0.95);",
-    "}",
-    
+    ".center-hub { position: absolute; top: 300px; left: 50%; transform: translate(-50%, -50%); width: 100px; height: 100px; background: radial-gradient(circle, #ffffff, #ffb6c1); border-radius: 50%; border: 6px solid #d4a5a5; box-shadow: 0 0 40px rgba(255, 182, 193, 0.8); display: flex; justify-content: center; align-items: center; z-index: 30; pointer-events: auto !important; cursor: pointer; -webkit-app-region: no-drag; transition: transform 0.2s ease, box-shadow 0.2s; }",
+    ".hub-content { display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }",
+    ".hub-icon { font-size: 28px; margin-bottom: -5px; animation: centerBloom 2s ease-in-out infinite; }",
+    ".hub-text { font-size: 16px; font-weight: bold; color: #d4a5a5; text-shadow: 1px 1px 0 #fff; font-family: 'Arial', sans-serif; letter-spacing: 1px; }",
+    ".center-hub:hover { transform: translate(-50%, -50%) scale(1.1); box-shadow: 0 0 60px rgba(255, 105, 180, 0.9); border-color: #ff69b4; }",
+    ".center-hub:active { transform: translate(-50%, -50%) scale(0.95); }",
     "@keyframes centerBloom { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }",
-    
     ".pointer { position: absolute; top: 45px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-top: 40px solid #ff69b4; filter: drop-shadow(0 4px 8px rgba(255, 105, 180, 0.6)); z-index: 40; }",
     ".pointer::after { content: '🌸'; position: absolute; top: -35px; left: -10px; font-size: 20px; animation: petalRotate 3s linear infinite; }",
     "@keyframes petalRotate { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(180deg); } }",
-    
-    "/* ▼▼▼ 修正: 旧ボタンは非表示 ▼▼▼ */",
     "#spinBtn { display: none !important; }",
     
-    "#result { position: absolute; top: 650px; font-size: 32px; font-weight: bold; color: #ff1493; text-shadow: 3px 3px 6px rgba(255, 182, 193, 0.8); font-family: 'ヒラギノ明朝 ProN', serif; width: 100%; text-align: center; z-index: 100; }",
-    "#legend-area { top: 570px !important; right: 10px !important; width: 160px !important; max-height: 150px !important; background: rgba(255, 250, 250, 0.9) !important; border: 2px solid #ffb6c1 !important; }"
+    "/* ▼▼▼ 修正: 位置を 600px に統一 ▼▼▼ */",
+    "#result { position: absolute !important; top: 600px !important; left: 0 !important; width: 100% !important; transform: none !important; font-size: 40px; font-weight: bold; color: #ff1493; text-shadow: 2px 2px 0 #ffffff, -2px -2px 0 #ffffff, 0 0 10px rgba(255, 182, 193, 0.9), 0 0 20px rgba(255, 105, 180, 0.5); font-family: 'ヒラギノ明朝 ProN', serif; text-align: center; z-index: 100; background: transparent; border: none; padding: 0; }",
+    
+    "#legend-area { top: 600px !important; right: 10px !important; width: 160px !important; max-height: 150px !important; background: rgba(255, 250, 250, 0.9) !important; border: 2px solid #ffb6c1 !important; }"
   ],
   "segmentCss": {
     "path": { "stroke": "#d4a5a5", "stroke-width": 2 },
     "text": { "font": "bold 20px 'ヒラギノ角ゴ ProN', sans-serif", "fill": "#8b4513", "text-shadow": "1px 1px 3px rgba(255, 255, 255, 0.8)" }
   },
-  "colorProfile": {
-    "type": "fixed-list",
-    "colors": [ "#ffb6c1", "#ffc0cb", "#ffb7c5", "#ffd1dc", "#ffcce5", "#ffccdd", "#ffb3d9", "#ffc2e0", "#ffa6c9", "#ffb8d1", "#ffc5d8", "#ffaac5" ]
-  },
+  "colorProfile": { "type": "fixed-list", "colors": ["#ffb6c1", "#ffc0cb", "#ffb7c5", "#ffd1dc", "#ffcce5", "#ffccdd", "#ffb3d9", "#ffc2e0", "#ffa6c9", "#ffb8d1", "#ffc5d8", "#ffaac5"] },
   "svgViewBox": "0 0 480 480"
 }
