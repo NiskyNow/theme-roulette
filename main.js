@@ -497,7 +497,7 @@ ipcMain.on('show-roulette-context-menu', (event) => {
         { label: 'プロファイル', submenu: profileSubmenu.length > 0 ? profileSubmenu : [{ label: 'なし', enabled: false }] },
         { label: 'テーマ', submenu: themeSubmenu.length > 0 ? themeSubmenu : [{ label: 'なし', enabled: false }] },
         { type: 'separator' },
-        { label: '凡例ウィンドウを表示', click: () => { createLegendWindow(); } },
+        { label: '項目リストを表示', click: () => { createLegendWindow(); } },
         { label: '設定画面を開く', click: () => { createSettingsWindow(); } },
         { label: 'ルーレットを閉じる', click: () => { if (rouletteWindow) rouletteWindow.close(); } }
     ];

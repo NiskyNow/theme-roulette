@@ -38,7 +38,8 @@
       "theme_profiles/**/*",
       "sounds/**/*",
       "!dist",
-      "!.git"
+      "!.git",
+      "!.back"
     ],
     "extraResources": [
       {

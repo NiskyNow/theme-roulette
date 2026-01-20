@@ -9,62 +9,85 @@
         background-color: #ffffff;
         margin: 0; padding: 0;
         overflow-y: auto;
+        /* スクロールバーのデザイン（Webkit系） */
+        scrollbar-width: thin;
     }
+    
+    /* ▼▼▼ ヘッダーの文言を修正 ▼▼▼ */
     .header {
         background: #f7f7f7; padding: 10px;
         font-weight: bold; font-size: 14px; color: #555;
         border-bottom: 2px solid #ddd;
         position: sticky; top: 0; z-index: 10;
         box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        display: flex; justify-content: space-between; align-items: center;
     }
-    .list-container { padding: 10px; }
+
+    /* ▼▼▼ リストをグリッドレイアウトに変更 ▼▼▼ */
+    .list-container { 
+        padding: 10px;
+        display: grid;
+        /* 幅150pxが入る限り列を増やす設定（ウィンドウ幅で列数が変わります） */
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 8px; /* 項目間の隙間 */
+    }
 
     .item-row {
         display: flex; align-items: center;
-        padding: 8px 10px;
-        border-bottom: 1px solid #f0f0f0;
-        font-size: 15px;
-        transition: all 0.3s ease;
-        border-radius: 4px;
+        padding: 6px 8px;
+        /* ▼▼▼ カード風のデザインに変更 ▼▼▼ */
+        background: #fff;
+        border: 1px solid #eee;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        font-size: 13px; /* 少し小さくして情報を詰め込む */
+        transition: all 0.2s ease;
+        border-radius: 6px;
         color: #333;
+        overflow: hidden; /* はみ出し防止 */
     }
 
-    /* ▼▼▼ 丸の色（ここに項目の色を表示） ▼▼▼ */
     .color-dot {
-        width: 14px; height: 14px;
+        width: 12px; height: 12px;
         border-radius: 50%;
-        margin-right: 12px;
+        margin-right: 8px;
         border: 1px solid rgba(0,0,0,0.1);
         flex-shrink: 0;
-        /* 色はJSで動的に指定 */
     }
 
     .item-num {
         font-weight: bold; color: #888;
-        width: 25px; text-align: right; margin-right: 10px;
+        width: 20px; text-align: right; margin-right: 8px;
         font-size: 0.9em; flex-shrink: 0;
     }
+    
     .item-name {
         word-break: break-all; font-weight: 500;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis; /* 長い名前は...で省略 */
     }
 
-    /* ▼▼▼ 当選時のハイライト（元の演出） ▼▼▼ */
+    /* ▼▼▼ 当選時のハイライト（より目立つように強化） ▼▼▼ */
     .winner-row {
-        background-color: #FFF7CD !important; /* 薄い黄色 */
-        border: 2px solid #FFD700;           /* 金色の枠 */
-        box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-        transform: scale(1.02);
+        background-color: #FFF7CD !important;
+        border: 2px solid #FFD700 !important;
+        box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+        transform: scale(1.05);
         font-weight: bold;
         z-index: 100;
+        position: relative; /* 重なり順制御のため */
     }
     .winner-row .item-num { color: #d35400; }
+    .winner-row .item-name { white-space: normal; } /* 当選時は全文表示 */
 
 </style>
 </head>
 <body>
-    <div class="header">エントリーリスト</div>
+    <div class="header">
+        <span>項目リスト</span>
+        <span style="font-size:10px; font-weight:normal; color:#888;">(ウィンドウ幅で列調整)</span>
+    </div>
+    
     <div class="list-container" id="list">
-        <div style="padding:10px; color:#aaa; font-size:12px;">読み込み中...</div>
+        <div style="padding:10px; color:#aaa; font-size:12px; grid-column: 1 / -1;">読み込み中...</div>
     </div>
 
     <script>
@@ -76,7 +99,7 @@
                 const list = document.getElementById('list');
                 
                 if (!data || !data.items || data.items.length === 0) {
-                    list.innerHTML = '<div style="padding:10px; color:#aaa;">項目がありません</div>';
+                    list.innerHTML = '<div style="padding:10px; color:#aaa; grid-column: 1 / -1;">項目がありません</div>';
                     return;
                 }
 
@@ -84,11 +107,10 @@
                 let html = '';
                 
                 data.items.forEach((item, index) => {
-                    // 色情報があれば反映、なければデフォルトのグレー
                     const color = item.color || '#ccc';
-                    
+                    // 名前が長すぎる場合のツールチップ用title属性を追加
                     html += `
-                        <div class="item-row" id="row-${index}">
+                        <div class="item-row" id="row-${index}" title="${item.name}">
                             <div class="color-dot" style="background-color: ${color};"></div>
                             <span class="item-num">${index + 1}</span>
                             <span class="item-name">${item.name}</span>
@@ -106,7 +128,8 @@
                 const targetRow = document.getElementById(`row-${index}`);
                 if (targetRow) {
                     targetRow.classList.add('winner-row');
-                    targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // グリッド内でもスムーズにスクロール
+                    targetRow.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
                 }
             });
 
